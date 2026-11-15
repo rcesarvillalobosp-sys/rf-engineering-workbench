@@ -52,6 +52,25 @@ electron-builder (NSIS, por usuario, carpeta elegible, accesos directos). El equ
   (`%LOCALAPPDATA%\electron-builder\Cache\winCodeSign`) en la subcarpeta `winCodeSign-2.6.0` excluyendo
   `libcrypto.dylib` y `libssl.dylib` (enlaces de macOS que no se usan en Windows), o active el Modo de desarrollador.
 
+## Versiones y actualizaciones automáticas
+
+- Código: repositorio **privado** `rcesarvillalobosp-sys/rf-engineering-workbench`.
+- Instaladores: repositorio **público** `rcesarvillalobosp-sys/rf-engineering-workbench-releases` (sólo Releases;
+  así la aplicación se actualiza sin incrustar ningún token).
+- La app instalada comprueba al arrancar si hay una versión nueva y **pregunta** antes de descargar y antes de instalar.
+  También hay un botón «Buscar actualizaciones» en el Dashboard. Registro: `%APPDATA%\rf-engineering-workbench\updater.log`.
+
+Publicar una versión nueva (requiere GitHub CLI con sesión iniciada):
+
+```powershell
+npm version patch --no-git-tag-version
+git commit -am "Versión X.Y.Z"
+npm run release
+```
+
+`scripts/release.ps1` se niega a publicar con cambios sin confirmar, fuera de `main` o si la versión ya existe; ejecuta
+las pruebas, compila todo, sube el instalador y `latest.yml` a las Releases públicas y etiqueta la versión en el repo de código.
+
 Electron arranca el motor Python en un puerto libre asignado por el sistema y lo detiene al cerrar.
 Los datos (biblioteca, mediciones, proyectos) se guardan en SQLite en `%APPDATA%\rf-engineering-workbench\data`.
 

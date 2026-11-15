@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { Activity, Antenna, ArrowRight, CircleDot, Cpu, FileInput, FileText, GitBranch, Library, Radio, ShieldCheck, Waves } from "lucide-react";
+import { Activity, Antenna, ArrowRight, CircleDot, Cpu, FileInput, FileText, GitBranch, Library, Radio, RefreshCw, ShieldCheck, Waves } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Btn, Collapse, Note, OriginBadge, PageHeader, Panel, Table } from "../components/ui";
 import { CONCEPTS } from "../content/concepts";
@@ -32,6 +32,13 @@ export function Dashboard() {
     get("/health").then(setHealth).catch((e) => setErr(e.message));
     get("/datasets").then(setDatasets).catch(() => {});
   }, []);
+  const [upd, setUpd] = useState<any>(null);
+  const [checking, setChecking] = useState(false);
+  useEffect(() => { window.rfwb?.updates.state().then(setUpd).catch(() => {}); }, []);
+  const checkUpd = async () => {
+    setChecking(true);
+    try { const s = await window.rfwb!.updates.check(); setUpd({ ...(upd ?? {}), ...s }); } finally { setChecking(false); }
+  };
   const runSelf = async () => {
     setRunning(true);
     try { setSelf(await get("/selftest")); } catch (e: any) { setErr(e.message); } finally { setRunning(false); }
@@ -64,7 +71,14 @@ export function Dashboard() {
               {health && <div className="flex justify-between"><span className="text-dim">NumPy / SciPy / skrf</span><span>{health.numpy} / {health.scipy} / {health.skrf}</span></div>}
               <div className="flex justify-between"><span className="text-dim">Conjuntos de datos</span><span>{datasets.length}</span></div>
               <div className="flex justify-between"><span className="text-dim">Elementos en el informe</span><span>{report.length}</span></div>
+              {upd && <div className="flex justify-between"><span className="text-dim">Aplicación</span><span>v{upd.current}</span></div>}
             </div>
+            {window.rfwb && (
+              <div className="mt-2.5 flex items-center justify-between gap-2 border-t border-line pt-2.5">
+                <span className="text-2xs text-faint">{upd?.message || "Actualizaciones desde GitHub Releases"}</span>
+                <Btn small loading={checking} icon={<RefreshCw className="h-3.5 w-3.5" />} onClick={checkUpd}>Buscar actualizaciones</Btn>
+              </div>
+            )}
           </Panel>
           <Panel title="Validación del motor" sub="Casos analíticos, Pozar y contraste con scikit-rf" actions={<Btn small variant="primary" loading={running} icon={<ShieldCheck className="h-3.5 w-3.5" />} onClick={runSelf}>Ejecutar</Btn>}>
             {!self ? <p className="text-[12px] text-dim">Ejecuta una batería de comprobaciones del motor matemático contra resultados de referencia. La batería completa (139 pruebas) está en <span className="font-mono">backend/tests</span>.</p> : (

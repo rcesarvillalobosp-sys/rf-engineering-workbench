@@ -1,6 +1,7 @@
 // RF Engineering Workbench — proceso principal de Electron.
 // Arranca el motor RF (Python/FastAPI) como subproceso, espera a que responda y carga la interfaz.
 const { app, BrowserWindow, dialog, shell } = require("electron");
+const updater = require("./updater.cjs");
 const { spawn, execFile } = require("node:child_process");
 const path = require("node:path");
 const fs = require("node:fs");
@@ -99,7 +100,7 @@ async function createWindow() {
   win = new BrowserWindow({
     width: 1600, height: 1000, minWidth: 1100, minHeight: 700, backgroundColor: "#05080a", title: "RF Engineering Workbench",
     autoHideMenuBar: true, show: false,
-    webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true },
+    webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true, preload: path.join(__dirname, "preload.cjs") },
   });
   win.once("ready-to-show", () => win.show());
   win.webContents.setWindowOpenHandler(({ url }) => { if (/^https?:/.test(url)) shell.openExternal(url); return { action: "deny" }; });
@@ -120,7 +121,7 @@ if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
   app.on("second-instance", () => { if (win) { if (win.isMinimized()) win.restore(); win.focus(); } });
-  app.whenReady().then(createWindow);
+  app.whenReady().then(() => { updater.setup(() => win); return createWindow(); });
   app.on("before-quit", () => { app.isQuitting = true; stopBackend(); });
   app.on("window-all-closed", () => app.quit());
   process.on("exit", stopBackend);
