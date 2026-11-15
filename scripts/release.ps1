@@ -1,9 +1,9 @@
-# Publica una versión: pruebas -> interfaz -> motor -> instalador -> GitHub Releases (repo público) -> etiqueta en el repo de código.
+﻿# Publica una versión: pruebas -> interfaz -> motor -> instalador -> GitHub Releases (repo público) -> etiqueta en el repo de código.
 # Uso:
 #   npm version patch --no-git-tag-version   (o minor / major)
 #   git commit -am "Versión X.Y.Z"
 #   npm run release
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"  # los errores se comprueban con $LASTEXITCODE (stderr de gh/npm no es fatal)
 Set-Location (Join-Path $PSScriptRoot "..")
 
 $ver = (Get-Content package.json -Raw | ConvertFrom-Json).version
