@@ -1,0 +1,76 @@
+{
+    "name":  "rf-engineering-workbench",
+    "version":  "1.0.0",
+    "description":  "RF Engineering Workbench â€” anÃ¡lisis, simulaciÃ³n y diseÃ±o de sistemas RF",
+    "main":  "electron/main.cjs",
+    "private":  true,
+    "scripts":  {
+                    "setup":  "npm install \u0026\u0026 npm --prefix frontend install",
+                    "build:ui":  "npm --prefix frontend run build",
+                    "dev":  "concurrently -k -n UI,APP \"npm --prefix frontend run dev\" \"wait-on http://127.0.0.1:5173 \u0026\u0026 cross-env RFWB_DEV_URL=http://127.0.0.1:5173 electron .\"",
+                    "start":  "npm run build:ui \u0026\u0026 electron .",
+                    "app":  "electron .",
+                    "test:engine":  "backend\\.venv\\Scripts\\python.exe -m pytest backend/tests -q",
+                    "build:engine":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build_engine.ps1",
+                    "dist":  "npm run build:ui \u0026\u0026 npm run build:engine \u0026\u0026 electron-builder --win nsis",
+                    "dist:only":  "electron-builder --win nsis"
+                },
+    "devDependencies":  {
+                            "concurrently":  "9.1.0",
+                            "cross-env":  "7.0.3",
+                            "electron":  "33.2.0",
+                            "electron-builder":  "25.1.8",
+                            "wait-on":  "8.0.1"
+                        },
+    "allowScripts":  {
+                         "electron@33.2.0":  true
+                     },
+    "build":  {
+                  "appId":  "com.rfworkbench.desktop",
+                  "productName":  "RF Engineering Workbench",
+                  "electronVersion":  "33.2.0",
+                  "asar":  true,
+                  "directories":  {
+                                      "output":  "release",
+                                      "buildResources":  "buildres"
+                                  },
+                  "files":  [
+                                "electron/**/*",
+                                "package.json"
+                            ],
+                  "extraResources":  [
+                                         {
+                                             "from":  "build/engine-dist/rfwb-engine",
+                                             "to":  "engine"
+                                         },
+                                         {
+                                             "from":  "frontend/dist",
+                                             "to":  "ui"
+                                         }
+                                     ],
+                  "win":  {
+                              "target":  [
+                                             {
+                                                 "target":  "nsis",
+                                                 "arch":  [
+                                                              "x64"
+                                                          ]
+                                             }
+                                         ],
+                              "icon":  "buildres/icon.png"
+                          },
+                  "nsis":  {
+                               "oneClick":  false,
+                               "perMachine":  false,
+                               "allowToChangeInstallationDirectory":  true,
+                               "createDesktopShortcut":  true,
+                               "createStartMenuShortcut":  true,
+                               "shortcutName":  "RF Engineering Workbench",
+                               "artifactName":  "RF-Engineering-Workbench-Setup-${version}.exe",
+                               "installerLanguages":  [
+                                                          "es_ES"
+                                                      ],
+                               "deleteAppDataOnUninstall":  false
+                           }
+              }
+}

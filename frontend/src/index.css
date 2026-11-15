@@ -1,0 +1,46 @@
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/600.css";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/600.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  @apply bg-bg font-sans text-ink antialiased;
+  font-size: 13px;
+}
+::selection {
+  background: rgba(47, 227, 154, 0.3);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #22323a transparent;
+}
+input[type="number"]::-webkit-inner-spin-button {
+  opacity: 0.4;
+}
+.bg-grid {
+  background-image: linear-gradient(rgba(47, 227, 154, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(47, 227, 154, 0.025) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+.js-plotly-plot .plotly .modebar {
+  background: transparent !important;
+}
+.js-plotly-plot .plotly .modebar-btn path {
+  fill: #4c5c56 !important;
+}
+.js-plotly-plot .plotly .modebar-btn:hover path {
+  fill: #2fe39a !important;
+}
