@@ -41,11 +41,21 @@ function Sym({ part, x, y, vertical, C }: { part: string; x: number; y: number; 
   );
 }
 
-export function Ladder({ items, left = { kind: "source", label: "Zs" }, right = { kind: "load", label: "ZL" }, height = 150 }: {
+export function Ladder({ items, left = { kind: "source", label: "Zs" }, right = { kind: "load", label: "ZL" }, height = 150,
+  selected, onSelect, slot, onSlot, numbered, colorsOf }: {
   items: LadderItem[];
-  left?: { kind: "source" | "port"; label: string };
-  right?: { kind: "load" | "short" | "open"; label?: string };
+  left?: { kind: "source" | "port" | "load"; label: string };
+  right?: { kind: "load" | "short" | "open" | "port"; label?: string };
   height?: number;
+  /** Índice del elemento seleccionado (resaltado). */
+  selected?: number;
+  onSelect?: (i: number) => void;
+  /** Punto de inserción activo (0 … n) y callback al pulsar un «+». */
+  slot?: number;
+  onSlot?: (i: number) => void;
+  /** Muestra el número de cada elemento (1 = el más cercano al lado izquierdo). */
+  numbered?: boolean;
+  colorsOf?: (i: number) => string;
 }) {
   const C = colors(useTheme());
   const n = Math.max(items.length, 1);
@@ -55,8 +65,8 @@ export function Ladder({ items, left = { kind: "source", label: "Zs" }, right = 
   return (
     <svg viewBox={`0 0 ${width} ${height}`} className="w-full" style={{ maxHeight: height }}>
       {/* raíles */}
-      <line x1={left.kind === "source" ? 40 : 30} y1={TOP} x2={xEnd} y2={TOP} stroke={C.wire} strokeWidth={1.4} />
-      <line x1={left.kind === "source" ? 40 : 30} y1={BOT} x2={xEnd} y2={BOT} stroke={C.wire} strokeWidth={1.4} />
+      <line x1={left.kind === "source" ? 40 : 30} y1={TOP} x2={right.kind === "port" ? xEnd + 22 : xEnd} y2={TOP} stroke={C.wire} strokeWidth={1.4} />
+      <line x1={left.kind === "source" ? 40 : 30} y1={BOT} x2={right.kind === "port" ? xEnd + 22 : xEnd} y2={BOT} stroke={C.wire} strokeWidth={1.4} />
       {/* lado izquierdo */}
       {left.kind === "source" ? (
         <g>
@@ -69,6 +79,13 @@ export function Ladder({ items, left = { kind: "source", label: "Zs" }, right = 
           <line x1={26} y1={BOT} x2={40} y2={BOT} stroke={C.wire} strokeWidth={1.4} />
           <text x={6} y={TOP + 18} fontSize={10} fill={C.txt} fontFamily="JetBrains Mono">{left.label}</text>
         </g>
+      ) : left.kind === "load" ? (
+        <g>
+          <line x1={30} y1={TOP} x2={30} y2={(TOP + BOT) / 2 - 16} stroke={C.wire} strokeWidth={1.4} />
+          <rect x={22} y={(TOP + BOT) / 2 - 16} width={16} height={32} fill={C.fill} stroke={C.warn} strokeWidth={1.5} />
+          <line x1={30} y1={(TOP + BOT) / 2 + 16} x2={30} y2={BOT} stroke={C.wire} strokeWidth={1.4} />
+          <text x={4} y={(TOP + BOT) / 2 + 4} fontSize={10.5} fill={C.warn} fontFamily="JetBrains Mono">{left.label}</text>
+        </g>
       ) : (
         <g>
           <circle cx={30} cy={TOP} r={3} fill={C.fill} stroke={C.txt} strokeWidth={1.4} />
@@ -78,6 +95,16 @@ export function Ladder({ items, left = { kind: "source", label: "Zs" }, right = 
       )}
       {items.map((it, i) => {
         const cx = x0 + i * W + W / 2;
+        const interactive = (
+          <>
+            {selected === i && <rect x={cx - W / 2 + 3} y={6} width={W - 6} height={height - 10} rx={6} fill={C.sym} fillOpacity={0.1} stroke={C.sym} strokeWidth={1.2} />}
+            {numbered && <g>
+              <circle cx={cx} cy={height - 12} r={8} fill={colorsOf ? colorsOf(i) : C.sym} />
+              <text x={cx} y={height - 8.5} textAnchor="middle" fontSize={10} fontWeight={700} fill={C.fill} fontFamily="JetBrains Mono">{i + 1}</text>
+            </g>}
+            {onSelect && <rect x={cx - W / 2} y={0} width={W} height={height} fill="transparent" style={{ cursor: "pointer" }} onClick={() => onSelect(i)} />}
+          </>
+        );
         const label = (
           <>
             {it.label && <text x={cx} y={it.type === "shunt" || it.type === "stub" ? BOT + 16 : TOP - 14} textAnchor="middle" fontSize={10} fill={C.txt} fontFamily="JetBrains Mono">{it.label}</text>}
@@ -90,6 +117,7 @@ export function Ladder({ items, left = { kind: "source", label: "Zs" }, right = 
               <rect x={cx - 24} y={TOP - 3} width={48} height={6} fill={C.fill} />
               <Sym C={C} part={it.part ?? "Z"} x={cx} y={TOP} />
               {label}
+              {interactive}
             </g>
           );
         }
@@ -102,6 +130,7 @@ export function Ladder({ items, left = { kind: "source", label: "Zs" }, right = 
               <line x1={cx} y1={(TOP + BOT) / 2 + 22} x2={cx} y2={BOT} stroke={C.wire} strokeWidth={1.4} />
               <circle cx={cx} cy={BOT} r={2.4} fill={C.wire} />
               {label}
+              {interactive}
             </g>
           );
         }
@@ -113,6 +142,7 @@ export function Ladder({ items, left = { kind: "source", label: "Zs" }, right = 
               <rect x={cx - 30} y={BOT - 4} width={60} height={8} fill={C.fill} stroke={C.line} strokeWidth={0.8} strokeOpacity={0.5} />
               {it.label && <text x={cx} y={TOP - 13} textAnchor="middle" fontSize={10} fill={C.line} fontFamily="JetBrains Mono">{it.label}</text>}
               {it.sub && <text x={cx} y={TOP + 22} textAnchor="middle" fontSize={9} fill={C.dim} fontFamily="JetBrains Mono">{it.sub}</text>}
+              {interactive}
             </g>
           );
         }
@@ -133,6 +163,18 @@ export function Ladder({ items, left = { kind: "source", label: "Zs" }, right = 
             )}
             {it.label && <text x={cx + 12} y={(yTop + yBot) / 2} fontSize={9.5} fill={C.line} fontFamily="JetBrains Mono">{it.label}</text>}
             {it.sub && <text x={cx + 12} y={(yTop + yBot) / 2 + 12} fontSize={9} fill={C.dim} fontFamily="JetBrains Mono">{it.sub}</text>}
+            {interactive}
+          </g>
+        );
+      })}
+      {/* puntos de inserción entre elementos */}
+      {onSlot && Array.from({ length: items.length + 1 }, (_, k) => {
+        const sx = items.length === 0 ? x0 + W / 2 : x0 + k * W;
+        const on = slot === k;
+        return (
+          <g key={`slot${k}`} style={{ cursor: "pointer" }} onClick={() => onSlot(k)}>
+            <circle cx={sx} cy={TOP} r={on ? 9 : 7} fill={on ? C.sym : C.fill} stroke={C.sym} strokeWidth={1.4} strokeDasharray={on ? undefined : "2 2"} />
+            <text x={sx} y={TOP + 4} textAnchor="middle" fontSize={on ? 13 : 11} fontWeight={700} fill={on ? C.fill : C.sym} fontFamily="JetBrains Mono">+</text>
           </g>
         );
       })}
@@ -148,6 +190,13 @@ export function Ladder({ items, left = { kind: "source", label: "Zs" }, right = 
         </g>
       )}
       {right.kind === "short" && <line x1={xEnd} y1={TOP} x2={xEnd} y2={BOT} stroke={C.wire} strokeWidth={1.4} />}
+      {right.kind === "port" && (
+        <g>
+          <circle cx={xEnd + 22} cy={TOP} r={3} fill={C.fill} stroke={C.txt} strokeWidth={1.4} />
+          <circle cx={xEnd + 22} cy={BOT} r={3} fill={C.fill} stroke={C.txt} strokeWidth={1.4} />
+          <text x={xEnd + 32} y={(TOP + BOT) / 2 + 4} fontSize={10.5} fill={C.sym} fontFamily="JetBrains Mono">{right.label ?? "Zin"}</text>
+        </g>
+      )}
     </svg>
   );
 }
