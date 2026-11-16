@@ -3,7 +3,7 @@ import { persist } from "zustand/middleware";
 import type { Origin, Step } from "./api";
 
 export type ModuleKey =
-  | "dashboard" | "smith" | "impedance" | "matching" | "tline" | "sparams" | "antenna" | "library" | "touchstone" | "vna" | "reports";
+  | "dashboard" | "smith" | "circuit" | "impedance" | "matching" | "tline" | "sparams" | "antenna" | "library" | "touchstone" | "vna" | "reports";
 
 export interface ReportItem {
   id: string;
@@ -30,6 +30,8 @@ interface State {
   report: ReportItem[];
   project: { id?: number; name: string };
   toasts: Toast[];
+  theme: { mode: "dark" | "light" | "system"; accent: "emerald" | "cyan" | "blue" | "violet" | "amber" };
+  setTheme: (p: Partial<State["theme"]>) => void;
   setModule: (m: ModuleKey) => void;
   setEducation: (v: boolean) => void;
   setForm: (key: string, patch: any) => void;
@@ -54,6 +56,8 @@ export const useStore = create<State>()(
       report: [],
       project: { name: "Proyecto sin título" },
       toasts: [],
+      theme: { mode: "dark", accent: "emerald" },
+      setTheme: (p) => set((s) => ({ theme: { ...s.theme, ...p } })),
       setModule: (module) => set({ module }),
       setEducation: (education) => set({ education }),
       setForm: (key, patch) => set((s) => ({ forms: { ...s.forms, [key]: { ...(s.forms[key] ?? {}), ...patch } } })),
@@ -81,7 +85,7 @@ export const useStore = create<State>()(
       },
       dropToast: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
     }),
-    { name: "rfwb-state", partialize: (s) => ({ forms: s.forms, report: s.report, project: s.project, education: s.education, module: s.module }) },
+    { name: "rfwb-state", partialize: (s) => ({ forms: s.forms, report: s.report, project: s.project, education: s.education, module: s.module, theme: s.theme }) },
   ),
 );
 

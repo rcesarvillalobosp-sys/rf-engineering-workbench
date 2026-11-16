@@ -335,3 +335,97 @@ def match_evaluate(r: TolReq):
                             r.load_model)
     a["description"] = [describe(e) for e in r.elements]
     return J(a)
+
+
+# ───────────── Constructor de circuitos ─────────────
+class BuilderReq(Model):
+    elements: list[dict] = []        # ORDEN: desde la carga hacia la fuente
+    zl: str | dict = "25-j40"
+    z0: float = 50.0
+    f0: float | str = "433MHz"
+    span: float = 0.5
+    n: int = 301
+    load_model: str = "series_equiv"
+
+
+def _builder_el(e: dict, f0: float, z0: float) -> dict:
+    """Convierte un elemento de la interfaz al formato del motor (network.py)."""
+    part = e.get("part")
+    kind = e.get("kind", "series")
+    if part in ("L", "C", "R"):
+        v = qty(e.get("value"), part)
+        if v <= 0:
+            raise RFInputError(f"{part}: el valor debe ser positivo.")
+        return {"kind": kind, "part": part, "value": v}
+    if part in ("line", "stub_open", "stub_short"):
+        vf = float(e.get("vf", 1.0) or 1.0)
+        zl_ = qty(e.get("z0", z0) or z0, "Z0 de la línea")
+        if not (0 < vf <= 1) or zl_ <= 0:
+            raise RFInputError("Línea/stub: Z0 > 0 y 0 < vf ≤ 1.")
+        lam = vf * 299_792_458.0 / f0
+        ln = float(e.get("length", 0.125))
+        unit = e.get("unit", "lambda")
+        length = ln * lam if unit == "lambda" else (ln / 360 * lam if unit == "deg" else qty(e.get("length"), "Longitud"))
+        if length < 0:
+            raise RFInputError("La longitud no puede ser negativa.")
+        if part == "line":
+            return {"kind": "line", "z0": zl_, "length_m": length, "vf": vf}
+        return {"kind": kind, "part": part, "z0": zl_, "length_m": length, "vf": vf}
+    raise RFInputError(f"Elemento desconocido: {part}")
+
+
+def _fz(z: complex) -> str:
+    if not np.isfinite(z):
+        return "∞"
+    return f"{z.real:.5g} {'+' if z.imag >= 0 else '−'} j{abs(z.imag):.5g} Ω"
+
+
+@router.post("/circuit/builder")
+def circuit_builder(r: BuilderReq):
+    from ..engine.network import element_z, trajectory
+    f0 = require_positive("Frecuencia", qty(r.f0, "Frecuencia"))
+    z0 = require_positive("Z0", r.z0)
+    zl = cplx(r.zl, "Carga")
+    if not np.isfinite(zl) or zl.real < 0:
+        raise RFInputError("La carga debe ser pasiva y finita (R ≥ 0).")
+    load_to_src = [_builder_el(e, f0, z0) for e in r.elements]
+    src_to_load = list(reversed(load_to_src))
+    t = Trace()
+    w = TWO_PI * f0
+    t.add("Punto de partida: la carga", "Γ_L = (Z_L − Z0)/(Z_L + Z0)", f"Z_L = {_fz(zl)} · Z0 = {z0:g} Ω",
+          f"z_L = {zl.real / z0:.4g} {'+' if zl.imag >= 0 else '−'} j{abs(zl.imag) / z0:.4g}", "",
+          "La carta se recorre desde la carga hacia la fuente, añadiendo un elemento cada vez.")
+    nodes = [zl]
+    z = zl
+    for i, el in enumerate(load_to_src, start=1):
+        zn = complex(zin_cascade([f0], [el], z)[0])
+        desc = describe(el)
+        if el["kind"] == "line":
+            beta_l = 360 * el["length_m"] / (el["vf"] * 299_792_458.0 / f0)
+            t.add(f"{i}. {desc}", "Z' = Zc (Z + Zc·j·tan βℓ) / (Zc + Z·j·tan βℓ)", f"βℓ = {beta_l:.4g}° · Z = {_fz(z)}", _fz(zn), "",
+                  "Una línea sin pérdidas hace girar el punto sobre un círculo de |Γ| constante (respecto a su propia Zc), en sentido horario.")
+        elif el["kind"] == "series":
+            ze = complex(element_z(np.array([f0]), el)[0])
+            t.add(f"{i}. {desc}", "Z' = Z + Z_elem  (en serie se suman impedancias)",
+                  f"Z_elem = {_fz(ze)}" + (f" (X = ωL = {w * el['value']:.4g} Ω)" if el.get("part") == "L" else f" (X = −1/ωC = {-1 / (w * el['value']):.4g} Ω)" if el.get("part") == "C" else ""),
+                  _fz(zn), "", "Serie: el punto se mueve sobre un círculo de resistencia constante; una L suma +jX (sentido horario) y un C resta (antihorario).")
+        else:
+            ze = complex(element_z(np.array([f0]), el)[0])
+            ye = 0j if not np.isfinite(ze) else (1 / ze if ze != 0 else complex(np.inf))
+            t.add(f"{i}. {desc}", "Y' = Y + Y_elem  (en paralelo se suman admitancias)",
+                  f"Y = {(1 / z) if z != 0 else complex(np.inf):.5g} S · Y_elem = {ye:.5g} S", _fz(zn), "",
+                  "Paralelo: el punto se mueve sobre un círculo de conductancia constante; un C añade +jB (sentido horario) y una L resta (antihorario).")
+        nodes.append(zn)
+        z = zn
+    zin = z
+    m = rfl.reflection_metrics(zin, z0, t) if np.isfinite(zin) else None
+    segs = trajectory(f0, src_to_load, zl, steps=60) if src_to_load else []
+    fs = np.linspace(max(f0 * (1 - r.span), f0 * 0.01), f0 * (1 + r.span), r.n)
+    zl_f = mt.load_model_z(zl, f0, fs, r.load_model)
+    zin_f = zin_cascade(fs, src_to_load, zl_f) if src_to_load else zl_f
+    g_f = gam(zin_f, z0)
+    return J({"f0": f0, "z0": z0, "zl": zl, "zin": zin, "nodes": nodes, "nodes_gamma": gam(np.array(nodes), z0),
+              "segments": [{"label": s["label"], "gamma": gam(np.array(s["z"]), z0)} for s in segs],
+              "reflection": m, "elements": src_to_load, "lambda_m": 299_792_458.0 / f0,
+              "sweep": {"f": fs, "zin": zin_f, "gamma": g_f, "s11_db": -rfl.rl_arr(np.abs(g_f)), "vswr": rfl.vswr_arr(np.minimum(np.abs(g_f), 1))},
+              "trace": t})

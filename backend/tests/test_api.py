@@ -228,3 +228,23 @@ def test_antenna_em_endpoint():
     assert r["origin"] == "simulated" and 2.0 < r["em"]["directivity_dbi"] < 2.3
     assert abs(r["best"]["f"] - 433e6) < 40e6  # resonancia cerca de f con L ≈ 0.48λ
     assert len(r["em"]["pattern"]["db"]) > 100
+
+def test_circuit_builder():
+    # Red L de Pozar ej. 5.1 construida desde la carga: C paralelo 0.92 pF y L serie 38.8 nH -> Zin ≈ 100 Ω
+    from rfwb.engine import matching as mt
+    sol = next(s for s in mt.design("L", 200 - 100j, 100 + 0j, 500e6, z0=100)["solutions"]
+               if {(e["kind"], e["part"]) for e in s["elements"]} == {("shunt", "C"), ("series", "L")})
+    c = next(e["value"] for e in sol["elements"] if e["part"] == "C")
+    lv = next(e["value"] for e in sol["elements"] if e["part"] == "L")
+    r = ok(client.post("/api/circuit/builder", json={"zl": "200-j100", "z0": 100, "f0": "500MHz", "elements": [
+        {"kind": "shunt", "part": "C", "value": c}, {"kind": "series", "part": "L", "value": lv}]}))
+    assert r["zin"]["re"] == pytest.approx(100, rel=1e-9) and abs(r["zin"]["im"]) < 1e-6
+    assert len(r["nodes"]) == 3 and len(r["segments"]) == 2 and len(r["trace"]) >= 4
+    # λ/4 de 50 Ω sobre 100 Ω -> 25 Ω ; stub en corto λ/8 en paralelo
+    r2 = ok(client.post("/api/circuit/builder", json={"zl": "100", "f0": "1GHz", "elements": [
+        {"kind": "line", "part": "line", "z0": "50", "length": 0.25, "unit": "lambda"}]}))
+    assert r2["zin"]["re"] == pytest.approx(25, rel=1e-6)
+    r3 = ok(client.post("/api/circuit/builder", json={"zl": "50", "f0": "1GHz", "elements": [
+        {"kind": "shunt", "part": "stub_short", "z0": "50", "length": 0.125, "unit": "lambda"}]}))
+    assert r3["zin"]["re"] == pytest.approx(25, rel=1e-6) and r3["zin"]["im"] == pytest.approx(25, rel=1e-6)  # 50 ‖ j50
+    assert client.post("/api/circuit/builder", json={"zl": "50", "f0": "1GHz", "elements": [{"kind": "series", "part": "L", "value": "-1n"}]}).status_code == 422

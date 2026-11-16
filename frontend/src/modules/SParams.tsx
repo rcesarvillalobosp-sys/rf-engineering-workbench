@@ -1,12 +1,14 @@
+import { EduNote } from "../components/EduNote";
 import { Plus, Trash2, Wand2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { PALETTE, Plot } from "../components/Plot";
+import { Plot, usePalette } from "../components/Plot";
 import { ReportButton, decimate } from "../components/ReportButton";
 import { SmithChart, type SmithCircle, type SmithTrace } from "../components/SmithChart";
 import { Btn, Collapse, Empty, Field, Grid, Input, KV, Note, OriginBadge, PageHeader, Panel, Seg, Select, Table, useCall } from "../components/ui";
 import { get, post } from "../lib/api";
 import { arr, cx, fmt, hz, num, pairs, si } from "../lib/format";
 import { useForm, useStore } from "../lib/store";
+import { useTheme } from "../lib/theme";
 
 type El = { kind: string; part: string; value: string; z0?: string; length?: string; vf?: string };
 const DEF = {
@@ -21,10 +23,12 @@ function elToApi(e: El) {
   return { kind: e.kind, part: e.part, value: e.value };
 }
 export function SParamsModule() {
+  const T = useTheme();
+  const PALETTE = usePalette();
   const [s, set] = useForm("sparams", DEF);
   const toast = useStore((st) => st.toast);
   const [list, setList] = useState<any[]>([]);
-  const refresh = () => get("/datasets").then((l) => { setList(l); if (!s.ds && l.length) set({ ds: l[0].id }); }).catch(() => {});
+  const refresh = () => get("/datasets").then((l) => { setList(l); if (!l.some((d: any) => d.id === s.ds)) set({ ds: l[0]?.id ?? 0 }); }).catch(() => {});
   useEffect(() => { refresh(); }, []);
   const call = useCall(() => post("/sparams/analyze", { dataset_id: s.ds, marker_f: s.marker || null, rl_threshold_db: s.rl }), s.ds ? [s.ds, s.marker, s.rl] : null, 150);
   const r = call.data as any;
@@ -43,7 +47,7 @@ export function SParamsModule() {
   const f = arr(r?.f);
   const mk = r?.marker;
   const fm = num(mk?.f);
-  const markerShape = Number.isFinite(fm) ? [{ type: "line", x0: fm, x1: fm, yref: "paper", y0: 0, y1: 1, line: { color: "#f0b44c", dash: "dot", width: 1 } }] : [];
+  const markerShape = Number.isFinite(fm) ? [{ type: "line", x0: fm, x1: fm, yref: "paper", y0: 0, y1: 1, line: { color: T.warn, dash: "dot", width: 1 } }] : [];
 
   const data = useMemo((): Record<string, any[]> => {
     if (!r) return {};
@@ -65,7 +69,7 @@ export function SParamsModule() {
     ...shown.filter((n) => n[1] === n[2]).map((n, i) => ({ pts: pairs(r.traces[n].x), color: PALETTE[i % PALETTE.length], width: 1.6, name: n })),
     ...cmp.flatMap((c, j) => shown.filter((n) => n[1] === n[2] && c.traces[n]).map((n) => ({ pts: pairs(c.traces[n].x), color: PALETTE[(j + 3) % PALETTE.length], width: 1.2, dash: true, name: `${n} ${c.name}` }))),
   ] : [];
-  const smithPts = mk ? shown.filter((n) => n[1] === n[2] && mk.values[n]).map((n) => ({ g: [mk.values[n].x.re, mk.values[n].x.im] as [number, number], label: `${n}@m`, color: "#f0b44c" })) : [];
+  const smithPts = mk ? shown.filter((n) => n[1] === n[2] && mk.values[n]).map((n) => ({ g: [mk.values[n].x.re, mk.values[n].x.im] as [number, number], label: `${n}@m`, color: T.warn })) : [];
 
   const simulate = async () => {
     try {
@@ -80,10 +84,10 @@ export function SParamsModule() {
 
   const cir = circles.data as any;
   const smithCircles: SmithCircle[] = cir ? [
-    ...(cir.stability_circles.load ? [{ c: [cir.stability_circles.load.center.re, cir.stability_circles.load.center.im] as [number, number], r: num(cir.stability_circles.load.radius), color: "#ff7a8a", label: "ΓL est.", dash: true }] : []),
-    ...(cir.stability_circles.source ? [{ c: [cir.stability_circles.source.center.re, cir.stability_circles.source.center.im] as [number, number], r: num(cir.stability_circles.source.radius), color: "#b58cff", label: "ΓS est.", dash: true }] : []),
-    ...cir.gain_circles.map((g: any) => ({ c: [g.center.re, g.center.im] as [number, number], r: num(g.radius), color: "#2fe39a", label: `Gp ${g.gain_db} dB` })),
-    ...cir.available_gain_circles.map((g: any) => ({ c: [g.center.re, g.center.im] as [number, number], r: num(g.radius), color: "#58b4ff", label: `Ga ${g.gain_db} dB` })),
+    ...(cir.stability_circles.load ? [{ c: [cir.stability_circles.load.center.re, cir.stability_circles.load.center.im] as [number, number], r: num(cir.stability_circles.load.radius), color: T.err, label: "ΓL est.", dash: true }] : []),
+    ...(cir.stability_circles.source ? [{ c: [cir.stability_circles.source.center.re, cir.stability_circles.source.center.im] as [number, number], r: num(cir.stability_circles.source.radius), color: T.violet, label: "ΓS est.", dash: true }] : []),
+    ...cir.gain_circles.map((g: any) => ({ c: [g.center.re, g.center.im] as [number, number], r: num(g.radius), color: T.acc, label: `Gp ${g.gain_db} dB` })),
+    ...cir.available_gain_circles.map((g: any) => ({ c: [g.center.re, g.center.im] as [number, number], r: num(g.radius), color: T.info, label: `Ga ${g.gain_db} dB` })),
   ] : [];
 
   const buildReport = () => {
@@ -108,7 +112,8 @@ export function SParamsModule() {
 
   return (
     <div>
-      <PageHeader index={6} title="S-Parameters" desc="Análisis complejo de parámetros S: las magnitudes en dB se derivan de los datos complejos, nunca al revés. Haga clic en una gráfica para fijar el marcador." right={<>{r && <OriginBadge origin={r.origin} detail={r.origin_label} />}<ReportButton build={buildReport} disabled={!r} /></>} />
+      <PageHeader index={7} title="S-Parameters" desc="Análisis complejo de parámetros S: las magnitudes en dB se derivan de los datos complejos, nunca al revés. Haga clic en una gráfica para fijar el marcador." right={<>{r && <OriginBadge origin={r.origin} detail={r.origin_label} />}<ReportButton build={buildReport} disabled={!r} /></>} />
+      <EduNote>Los parámetros S relacionan ondas: <b>S11</b> es la reflexión en el puerto 1 y <b>S21</b> la transmisión del puerto 1 al 2, con los demás puertos terminados en Z0. Son números complejos: la magnitud en dB (20·log10|S|) indica cuánta señal se refleja o pasa, y la fase el retardo. |S21| en dB negativo es pérdida de inserción; el retardo de grupo −dφ/dω indica cuánto tarda la envolvente en atravesar el dispositivo.</EduNote>
       <div className="grid grid-cols-1 gap-3 xl:grid-cols-[330px_minmax(0,1fr)]">
         <div className="space-y-3">
           <Panel title="Datos">
@@ -117,7 +122,7 @@ export function SParamsModule() {
               <button key={n} onClick={() => set({ params: s.params.includes(n) ? s.params.filter((p) => p !== n) : [...s.params, n] })} className={`rounded border px-2 py-0.5 font-mono text-2xs ${s.params.includes(n) ? "border-acc/60 bg-acc/10 text-acc" : "border-line2 text-dim"}`}>{r.labels?.[n] ?? n}</button>
             ))}</div>}
             <div className="mt-2.5"><Field label="Comparar con"><div className="max-h-28 space-y-0.5 overflow-auto">{list.filter((d) => d.id !== s.ds).map((d) => (
-              <label key={d.id} className="flex items-center gap-2 text-[12px] text-dim"><input type="checkbox" className="accent-[#2fe39a]" checked={s.compare.includes(d.id)} onChange={(e) => set({ compare: e.target.checked ? [...s.compare, d.id] : s.compare.filter((x) => x !== d.id) })} /><span className="truncate">{d.name}</span><span className="ml-auto text-2xs text-faint">{d.origin}</span></label>
+              <label key={d.id} className="flex items-center gap-2 text-[12px] text-dim"><input type="checkbox" className="accent-acc" checked={s.compare.includes(d.id)} onChange={(e) => set({ compare: e.target.checked ? [...s.compare, d.id] : s.compare.filter((x) => x !== d.id) })} /><span className="truncate">{d.name}</span><span className="ml-auto text-2xs text-faint">{d.origin}</span></label>
             ))}</div></Field></div>
             {cmp.length > 0 && <div className="mt-2 flex flex-wrap gap-1">{cmp.map((c) => <OriginBadge key={c.name} origin={c.origin} detail={c.name} />)}</div>}
           </Panel>
@@ -166,7 +171,7 @@ export function SParamsModule() {
               {["mag", "phase", "vswr", "rl", "gd"].includes(s.view) && (
                 <Panel pad={false}><Plot data={data[s.view] ?? []} height={380} onClickX={(x) => set({ marker: String(x) })}
                   layout={{ xaxis: { title: { text: "Frecuencia (Hz)" } }, yaxis: { title: { text: ylab[s.view] }, ...(s.view === "vswr" ? { range: [1, 10] } : {}) }, shapes: [...markerShape,
-                    ...(s.view === "rl" || s.view === "mag" ? (r.traces.S11?.bands ?? []).map((b: any) => ({ type: "rect", x0: b.f_low, x1: b.f_high, yref: "paper", y0: 0, y1: 1, fillcolor: "rgba(47,227,154,0.05)", line: { width: 0 } })) : [])] }} /></Panel>
+                    ...(s.view === "rl" || s.view === "mag" ? (r.traces.S11?.bands ?? []).map((b: any) => ({ type: "rect", x0: b.f_low, x1: b.f_high, yref: "paper", y0: 0, y1: 1, fillcolor: T.accSoft, line: { width: 0 } })) : [])] }} /></Panel>
               )}
               {s.view === "smith" && (
                 <Panel pad={false}><div className="mx-auto aspect-square max-h-[620px] w-full max-w-[620px] p-2"><SmithChart z0={r.z0[0]} traces={smithTraces} points={smithPts} /></div>
@@ -177,7 +182,7 @@ export function SParamsModule() {
                   <div className="space-y-3">
                     <Panel title="Factores de estabilidad" sub="Rollett K y μ (Edwards–Sinsky)" pad={false}>
                       <Plot height={250} data={[{ x: f, y: arr(r.stability.k), name: "K" }, { x: f, y: arr(r.stability.mu), name: "μ" }]} onClickX={(x) => set({ marker: String(x) })}
-                        layout={{ xaxis: { title: { text: "Frecuencia (Hz)" } }, yaxis: { title: { text: "K, μ" } }, shapes: [...markerShape, { type: "line", xref: "paper", x0: 0, x1: 1, y0: 1, y1: 1, line: { color: "#ff7a8a", dash: "dash", width: 1 } }] }} />
+                        layout={{ xaxis: { title: { text: "Frecuencia (Hz)" } }, yaxis: { title: { text: "K, μ" } }, shapes: [...markerShape, { type: "line", xref: "paper", x0: 0, x1: 1, y0: 1, y1: 1, line: { color: T.err, dash: "dash", width: 1 } }] }} />
                     </Panel>
                     <Panel title="Ganancia máxima" pad={false}><Plot height={220} data={[{ x: f, y: arr(r.stability.mag_db), name: "MAG (K ≥ 1)" }, { x: f, y: arr(r.stability.msg_db), name: "MSG" }]} layout={{ xaxis: { title: { text: "Frecuencia (Hz)" } }, yaxis: { title: { text: "dB" } } }} /></Panel>
                     {cir && <Panel title={`A ${hz(cir.f)}`}>
@@ -188,7 +193,7 @@ export function SParamsModule() {
                   </div>
                   <Panel title="Círculos de estabilidad y ganancia" sub="Rojo: estabilidad en ΓL · violeta: en ΓS · verde Gp (ΓL) · azul Ga (ΓS)" pad={false}>
                     <div className="px-3 pt-2"><Field label="Ganancias (dB)"><Input value={s.circGains} onChange={(e) => set({ circGains: e.target.value })} /></Field></div>
-                    <div className="aspect-square w-full p-1.5"><SmithChart z0={r.z0[0]} circles={smithCircles} points={cir?.conjugate_match ? [{ g: [cir.conjugate_match.gamma_l.re, cir.conjugate_match.gamma_l.im], label: "ΓL*", color: "#2fe39a" }, { g: [cir.conjugate_match.gamma_s.re, cir.conjugate_match.gamma_s.im], label: "ΓS*", color: "#58b4ff" }] : []} /></div>
+                    <div className="aspect-square w-full p-1.5"><SmithChart z0={r.z0[0]} circles={smithCircles} points={cir?.conjugate_match ? [{ g: [cir.conjugate_match.gamma_l.re, cir.conjugate_match.gamma_l.im], label: "ΓL*", color: T.acc }, { g: [cir.conjugate_match.gamma_s.re, cir.conjugate_match.gamma_s.im], label: "ΓS*", color: T.info }] : []} /></div>
                     {circles.error && <Note kind="err" className="m-2">{circles.error}</Note>}
                   </Panel>
                 </Grid>

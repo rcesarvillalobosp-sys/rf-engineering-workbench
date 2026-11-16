@@ -1,3 +1,4 @@
+import { EduNote } from "../components/EduNote";
 import { useMemo } from "react";
 import { Plot } from "../components/Plot";
 import { ReportButton, decimate } from "../components/ReportButton";
@@ -8,6 +9,7 @@ import { Field, Grid, Input, KV, Note, OriginBadge, PageHeader, Panel, Seg, Sele
 import { post } from "../lib/api";
 import { arr, cx, fmt, num, pairs, si } from "../lib/format";
 import { useForm } from "../lib/store";
+import { useTheme } from "../lib/theme";
 
 const TOPOS = [
   ["R", "Resistencia pura"], ["L", "Inductancia pura"], ["C", "Capacitancia pura"],
@@ -34,6 +36,7 @@ function ladderFor(topo: string, R: string, L: string, C: string): { items: Ladd
 }
 
 export function ImpedanceModule() {
+  const T = useTheme();
   const [s, set] = useForm("impedance", DEF);
   const preset = useCall(
     () => post("/circuit/analyze", { topology: s.topology, f: s.f, R: s.R || 0, L: s.L || 0, C: s.C || 0, z0: s.z0, v_rms: s.v, sweep: { start: s.start, stop: s.stop, n: s.n, log: s.log } }),
@@ -87,14 +90,15 @@ export function ImpedanceModule() {
 
   return (
     <div>
-      <PageHeader index={3} title="Impedance Analyzer" desc="Impedancia, admitancia, potencias, resonancia y Q de circuitos R-L-C con desarrollo paso a paso. Convención e^{+jωt}: X_L > 0, X_C < 0." right={<><OriginBadge origin="calculated" /><ReportButton build={buildReport} disabled={!r} /></>} />
+      <PageHeader index={4} title="Impedance Analyzer" desc="Impedancia, admitancia, potencias, resonancia y Q de circuitos R-L-C con desarrollo paso a paso. Convención e^{+jωt}: X_L > 0, X_C < 0." right={<><OriginBadge origin="calculated" /><ReportButton build={buildReport} disabled={!r} /></>} />
+      <EduNote>La impedancia Z = R + jX combina una parte que <b>disipa</b> potencia (R) y otra que la <b>almacena</b> (X). En serie se suman impedancias; en paralelo se suman admitancias Y = 1/Z. En la <b>resonancia</b> las reactancias inductiva y capacitiva se cancelan: el circuito es puramente resistivo, y el factor Q indica lo estrecha que es la curva (BW = f0/Q).</EduNote>
       <div className="mb-3"><Seg value={s.mode} onChange={(v) => set({ mode: v })} options={[{ value: "preset", label: "Circuitos predefinidos" }, { value: "network", label: "Red personalizada (combinaciones)" }]} /></div>
       <div className="grid grid-cols-1 gap-3 xl:grid-cols-[380px_minmax(0,1fr)]">
         <div className="space-y-3">
           {s.mode === "preset" ? (
             <Panel title="Circuito">
               <Field label="Topología"><Select value={s.topology} onChange={(v) => set({ topology: v })} options={TOPOS.map(([v, l]) => ({ value: v, label: l }))} /></Field>
-              <div className="mt-2.5 rounded border border-line bg-[#060a0c] p-2"><Ladder items={sch.items} left={{ kind: "port", label: "Zin" }} right={{ kind: sch.right }} height={140} /></div>
+              <div className="mt-2.5 rounded border border-line bg-panel2 p-2"><Ladder items={sch.items} left={{ kind: "port", label: "Zin" }} right={{ kind: sch.right }} height={140} /></div>
               <div className="mt-2.5 grid grid-cols-3 gap-2">
                 <Field label="R" hint="Ω"><Input value={s.R} disabled={!uses.includes("R")} onChange={(e) => set({ R: e.target.value })} /></Field>
                 <Field label="L" hint="H (10n, 1.5u)"><Input value={s.L} disabled={!uses.includes("L")} onChange={(e) => set({ L: e.target.value })} /></Field>
@@ -110,7 +114,7 @@ export function ImpedanceModule() {
             <Panel title="Red personalizada" sub="'+' serie · '||' paralelo · R() L() C() Z(re,im)">
               <Field label="Expresión"><Input value={s.expr} onChange={(e) => set({ expr: e.target.value })} /></Field>
               <div className="mt-1.5 flex flex-wrap gap-1">{EXAMPLES.map((e) => <button key={e} onClick={() => set({ expr: e })} className="rounded border border-line px-1.5 py-0.5 font-mono text-2xs text-dim hover:border-acc/40 hover:text-acc">{e}</button>)}</div>
-              {r?.text && <div className="mt-2 rounded bg-[#060a0c] px-2 py-1.5 font-mono text-[12px] text-acc">{r.text}</div>}
+              {r?.text && <div className="mt-2 rounded bg-panel2 px-2 py-1.5 font-mono text-[12px] text-acc">{r.text}</div>}
               <div className="mt-2.5 grid grid-cols-2 gap-2">
                 <Field label="Frecuencia"><Input value={s.fN} onChange={(e) => set({ fN: e.target.value })} /></Field>
                 <Field label="Z0 ref."><Input type="number" value={s.z0} suffix="Ω" onChange={(e) => set({ z0: Number(e.target.value) || 50 })} /></Field>
@@ -168,13 +172,13 @@ export function ImpedanceModule() {
                 )}
                 <Panel title="Carta de Smith" sub="Barrido y punto a f" pad={false}>
                   <div className="aspect-square w-full p-1.5">
-                    <SmithChart z0={s.z0} traces={sw ? [{ pts: pairs(sw.gamma), color: "#58b4ff", width: 1.4 }] : []} points={refl ? [{ g: [refl.gamma.re, refl.gamma.im], label: "f", color: "#2fe39a" }] : []} />
+                    <SmithChart z0={s.z0} traces={sw ? [{ pts: pairs(sw.gamma), color: T.info, width: 1.4 }] : []} points={refl ? [{ g: [refl.gamma.re, refl.gamma.im], label: "f", color: T.acc }] : []} />
                   </div>
                 </Panel>
               </Grid>
               {plots && (
                 <Grid>
-                  <Panel title="|Z| y fase" pad={false}><Plot data={plots.zmag} height={260} layout={{ xaxis: { type: s.log ? "log" : "linear", title: { text: "Frecuencia (Hz)" } }, yaxis: { type: "log", title: { text: "|Z| (Ω)" } }, yaxis2: { title: { text: "Fase (°)" }, range: [-95, 95] }, shapes: Number.isFinite(fx) ? [{ type: "line", x0: fx, x1: fx, yref: "paper", y0: 0, y1: 1, line: { color: "#2fe39a", dash: "dot", width: 1 } }] : [] }} /></Panel>
+                  <Panel title="|Z| y fase" pad={false}><Plot data={plots.zmag} height={260} layout={{ xaxis: { type: s.log ? "log" : "linear", title: { text: "Frecuencia (Hz)" } }, yaxis: { type: "log", title: { text: "|Z| (Ω)" } }, yaxis2: { title: { text: "Fase (°)" }, range: [-95, 95] }, shapes: Number.isFinite(fx) ? [{ type: "line", x0: fx, x1: fx, yref: "paper", y0: 0, y1: 1, line: { color: T.acc, dash: "dot", width: 1 } }] : [] }} /></Panel>
                   <Panel title="Resistencia y reactancia" pad={false}><Plot data={plots.rx} height={260} layout={{ xaxis: { type: s.log ? "log" : "linear", title: { text: "Frecuencia (Hz)" } }, yaxis: { title: { text: "Ω" } } }} /></Panel>
                 </Grid>
               )}

@@ -1,3 +1,4 @@
+import { EduNote } from "../components/EduNote";
 import { Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ReportButton } from "../components/ReportButton";
@@ -8,7 +9,8 @@ import { post } from "../lib/api";
 import { cx, fmt, num, pairs, polar, si } from "../lib/format";
 import type { P } from "../lib/smith";
 import { useForm, useStore } from "../lib/store";
-import { PALETTE } from "../components/Plot";
+import { useTheme } from "../lib/theme";
+import { usePalette } from "../components/Plot";
 
 type Pt = { label: string; z: string };
 const DEF = {
@@ -24,6 +26,8 @@ const DEF = {
 };
 
 export function SmithModule() {
+  const T = useTheme();
+  const PALETTE = usePalette();
   const [s, set] = useForm("smith", DEF);
   const toast = useStore((st) => st.toast);
   const [res, setRes] = useState<(any | null)[]>([]);
@@ -62,12 +66,12 @@ export function SmithModule() {
       const g: P = i === sel && dragG ? dragG : [r.gamma.re, r.gamma.im];
       out.push({ g, label: p.label, color: PALETTE[i % PALETTE.length], size: i === sel ? 0.026 : 0.02 });
     });
-    if (rot?.gamma_end) out.push({ g: [rot.gamma_end.re, rot.gamma_end.im], label: `${s.pts[sel]?.label}'`, color: "#f0b44c", hollow: true });
+    if (rot?.gamma_end) out.push({ g: [rot.gamma_end.re, rot.gamma_end.im], label: `${s.pts[sel]?.label}'`, color: T.warn, hollow: true });
     return out;
   }, [res, sel, dragG, rot, s.pts]);
   const dragIndex = points.findIndex((p) => p.label === s.pts[sel]?.label);
 
-  const traces: SmithTrace[] = rot ? [{ pts: pairs(rot.gamma), color: "#f0b44c", dash: true, arrow: true, name: "Línea" }] : [];
+  const traces: SmithTrace[] = rot ? [{ pts: pairs(rot.gamma), color: T.warn, dash: true, arrow: true, name: "Línea" }] : [];
   const vswr = s.showVswr && cur?.gamma_mag != null ? [num(cur.gamma_mag)] : [];
 
   const setPt = (i: number, patch: Partial<Pt>) => set({ pts: s.pts.map((p, j) => (j === i ? { ...p, ...patch } : p)) });
@@ -105,6 +109,7 @@ export function SmithModule() {
   return (
     <div>
       <PageHeader index={2} title="Smith Chart" desc="Carta de Smith exacta: Γ = (Z − Z0)/(Z + Z0). Haga clic para situar el punto seleccionado, arrástrelo para moverlo, rueda para zoom y doble clic para restablecer." right={<><OriginBadge origin="calculated" /><ReportButton build={buildReport} disabled={!cur} /></>} />
+      <EduNote>Cada punto de la carta es un coeficiente de reflexión Γ = (Z − Z0)/(Z + Z0). El <b>centro</b> es la adaptación perfecta (Z = Z0); el <b>borde</b> es |Γ| = 1 (reactancia pura, toda la potencia se refleja). La mitad <b>superior</b> es inductiva y la <b>inferior</b> capacitiva. Los círculos son de resistencia normalizada r constante y los arcos de reactancia x constante; el círculo discontinuo une los puntos con el mismo VSWR. Mueva el deslizador de línea para ver cómo gira la impedancia hacia el generador.</EduNote>
       <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1fr)_400px]">
         <Panel pad={false} className="overflow-hidden">
           <div className="flex flex-wrap items-center gap-4 border-b border-line px-3.5 py-2">
@@ -168,7 +173,7 @@ export function SmithModule() {
           </Panel>
           <Panel title="Desplazamiento por línea sin pérdidas" sub="Movimiento del punto sobre la carta">
             <div className="flex items-center gap-3">
-              <input type="range" min={0} max={0.5} step={0.001} value={s.rotLen} onChange={(e) => set({ rotLen: Number(e.target.value) })} className="flex-1 accent-[#2fe39a]" />
+              <input type="range" min={0} max={0.5} step={0.001} value={s.rotLen} onChange={(e) => set({ rotLen: Number(e.target.value) })} className="flex-1 accent-acc" />
               <span className="w-16 text-right font-mono text-[12px] text-ink">{s.rotLen.toFixed(3)} λ</span>
             </div>
             <div className="mt-2 flex items-center justify-between">

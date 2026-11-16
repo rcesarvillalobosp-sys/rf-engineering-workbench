@@ -1,5 +1,6 @@
 import { ArrowDown, ArrowUp, FileDown, FileSpreadsheet, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { EduNote } from "../components/EduNote";
 import { Btn, Empty, Field, Input, KV, Note, OriginBadge, PageHeader, Panel } from "../components/ui";
 import { ORIGIN_LABEL, download } from "../lib/api";
 import { useForm, useStore } from "../lib/store";
@@ -19,8 +20,9 @@ export function ReportsModule() {
   };
   return (
     <div>
-      <PageHeader index={11} title="Reports" desc="Informe técnico con datos de entrada, resultados, carta de Smith, gráficas y procedimientos. Cada elemento declara si procede de cálculo, simulación, archivo importado o medición real."
+      <PageHeader index={12} title="Reports" desc="Informe técnico con datos de entrada, resultados, carta de Smith, gráficas y procedimientos. Cada elemento declara si procede de cálculo, simulación, archivo importado o medición real."
         right={<><Btn small loading={busy === "csv"} disabled={!report.length} icon={<FileSpreadsheet className="h-3.5 w-3.5" />} onClick={() => exp("csv")}>Exportar CSV</Btn><Btn small variant="primary" loading={busy === "pdf"} disabled={!report.length} icon={<FileDown className="h-3.5 w-3.5" />} onClick={() => exp("pdf")}>Exportar PDF</Btn></>} />
+      <EduNote>Un informe técnico debe permitir reproducir el resultado: por eso incluye los datos de entrada, el procedimiento y, sobre todo, la <b>procedencia</b> de cada dato. Un valor calculado o simulado no es una medición, y un archivo importado sólo es tan fiable como la medida que lo generó.</EduNote>
       <div className="grid grid-cols-1 gap-3 xl:grid-cols-[420px_minmax(0,1fr)]">
         <div className="space-y-3">
           <Panel title="Documento">

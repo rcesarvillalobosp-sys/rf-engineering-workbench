@@ -1,12 +1,14 @@
 import { AnimatePresence, motion } from "motion/react";
 import {
   Activity, Antenna, BookOpen, CircleDot, Cpu, FileInput, FileText, FolderOpen, GitBranch, GraduationCap, LayoutDashboard,
-  Library, Radio, Save, Waves, X,
+  Library, Monitor, Moon, Network, Palette as PaletteIcon, Radio, Save, Sun, Waves, X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Btn, Input, Toggle } from "./components/ui";
+import { Btn, Input } from "./components/ui";
 import { get, post, put, del } from "./lib/api";
 import { type ModuleKey, useStore } from "./lib/store";
+import { ACCENTS, useApplyTheme } from "./lib/theme";
+import { CircuitModule } from "./modules/Circuit";
 import { AntennaModule } from "./modules/Antenna";
 import { Dashboard } from "./modules/Dashboard";
 import { ImpedanceModule } from "./modules/Impedance";
@@ -22,6 +24,7 @@ import { VNAModule } from "./modules/VNA";
 export const MODULES: { key: ModuleKey; label: string; icon: any; Comp: () => JSX.Element }[] = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard, Comp: Dashboard },
   { key: "smith", label: "Smith Chart", icon: CircleDot, Comp: SmithModule },
+  { key: "circuit", label: "Circuit Builder", icon: Network, Comp: CircuitModule },
   { key: "impedance", label: "Impedance Analyzer", icon: Activity, Comp: ImpedanceModule },
   { key: "matching", label: "Matching Designer", icon: GitBranch, Comp: MatchingModule },
   { key: "tline", label: "Transmission Lines", icon: Waves, Comp: TLineModule },
@@ -46,8 +49,8 @@ function VnaBadge() {
   if (err) return <span className="rounded border border-err/40 px-2 py-0.5 text-2xs text-err">Motor RF no disponible</span>;
   if (!st) return null;
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded border px-2 py-0.5 text-2xs ${st.connected ? "border-[#ff8a5c]/50 bg-[#ff8a5c]/10 text-[#ffab8a]" : "border-line2 text-dim"}`}>
-      <span className={`h-1.5 w-1.5 rounded-full ${st.connected ? "animate-pulse bg-[#ff8a5c]" : "bg-faint"}`} />
+    <span className={`inline-flex items-center gap-1.5 rounded border px-2 py-0.5 text-2xs ${st.connected ? "border-orange/50 bg-orange/10 text-orange" : "border-line2 text-dim"}`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${st.connected ? "animate-pulse bg-orange" : "bg-faint"}`} />
       {st.label}
     </span>
   );
@@ -108,76 +111,103 @@ function ProjectMenu({ onClose }: { onClose: () => void }) {
   );
 }
 
+function ThemeMenu({ onClose }: { onClose: () => void }) {
+  const theme = useStore((s) => s.theme);
+  const setTheme = useStore((s) => s.setTheme);
+  const T = useApplyTheme();
+  return (
+    <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} className="absolute right-0 top-9 z-50 w-[300px] rounded-md border border-line2 bg-panel p-3 shadow-2xl">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-[12px] font-semibold uppercase tracking-wider text-dim">Apariencia</span>
+        <button onClick={onClose} className="text-dim hover:text-ink"><X className="h-4 w-4" /></button>
+      </div>
+      <div className="grid grid-cols-3 gap-1.5">
+        {([["dark", "Oscuro", Moon], ["light", "Claro", Sun], ["system", "Sistema", Monitor]] as const).map(([k, l, I]) => (
+          <button key={k} onClick={() => setTheme({ mode: k })} className={`flex flex-col items-center gap-1 rounded border px-2 py-2 text-[12px] ${theme.mode === k ? "border-acc bg-acc/10 text-acc" : "border-line2 text-dim hover:text-ink"}`}>
+            <I className="h-4 w-4" />{l}
+          </button>
+        ))}
+      </div>
+      <div className="mt-3 text-2xs uppercase tracking-wider text-dim">Color de acento</div>
+      <div className="mt-1.5 flex gap-2">
+        {ACCENTS.map((a) => (
+          <button key={a.key} title={a.label} onClick={() => setTheme({ accent: a.key })}
+            className={`h-7 w-7 rounded-full border-2 ${theme.accent === a.key ? "border-ink" : "border-transparent"}`}
+            style={{ background: T.mode === "dark" ? a.dark : a.light }} />
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
 export default function App() {
-  const { module, setModule, education, setEducation, toasts, dropToast, report, project } = useStore();
+  const { module, setModule, education, setEducation, toasts, dropToast, report, project, theme } = useStore();
+  useApplyTheme();
   const [projOpen, setProjOpen] = useState(false);
+  const [themeOpen, setThemeOpen] = useState(false);
   const current = MODULES.find((m) => m.key === module) ?? MODULES[0];
   const Comp = current.Comp;
   return (
-    <div className="flex h-full">
-      <aside className="flex w-[218px] shrink-0 flex-col border-r border-line bg-[#060a0c]">
-        <div className="border-b border-line px-4 py-3.5">
-          <div className="flex items-center gap-2">
-            <svg viewBox="0 0 32 32" className="h-7 w-7">
-              <circle cx="16" cy="16" r="13" fill="none" stroke="#2fe39a" strokeWidth="1.6" />
-              <circle cx="20.3" cy="16" r="8.7" fill="none" stroke="#2fe39a" strokeWidth="1" opacity="0.6" />
-              <circle cx="24.6" cy="16" r="4.3" fill="none" stroke="#2fe39a" strokeWidth="1" opacity="0.4" />
-              <line x1="3" y1="16" x2="29" y2="16" stroke="#2fe39a" strokeWidth="1" opacity="0.5" />
-            </svg>
-            <div className="leading-tight">
-              <div className="text-[12.5px] font-semibold tracking-wide text-ink">RF ENGINEERING</div>
-              <div className="font-mono text-[10px] tracking-[0.25em] text-acc">WORKBENCH</div>
-            </div>
-          </div>
-        </div>
-        <nav className="flex-1 overflow-auto py-2">
-          {MODULES.map((m, i) => {
-            const Icon = m.icon;
-            const on = m.key === module;
-            return (
-              <button key={m.key} onClick={() => setModule(m.key)} className={`group relative flex w-full items-center gap-2.5 px-4 py-[7px] text-left text-[12.5px] transition-colors ${on ? "text-acc" : "text-dim hover:text-ink"}`}>
-                {on && <motion.span layoutId="nav-active" className="absolute inset-y-0.5 left-1.5 right-1.5 rounded bg-acc/[0.08] ring-1 ring-acc/20" transition={{ type: "spring", stiffness: 500, damping: 40 }} />}
-                <span className="relative w-5 font-mono text-[10px] text-faint group-hover:text-dim">{String(i + 1).padStart(2, "0")}</span>
-                <Icon className="relative h-4 w-4" />
-                <span className="relative">{m.label}</span>
-                {m.key === "reports" && report.length > 0 && <span className="relative ml-auto rounded bg-acc/15 px-1.5 font-mono text-[10px] text-acc">{report.length}</span>}
-              </button>
-            );
-          })}
-        </nav>
-        <div className="border-t border-line px-4 py-3 text-2xs leading-relaxed text-faint">
-          Motor: Python · NumPy · SciPy · scikit-rf
-          <br />
-          Convención e<sup>+jωt</sup> · Z0 real
-        </div>
-      </aside>
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-11 shrink-0 items-center justify-between gap-3 border-b border-line bg-[#070b0d] px-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <span className="truncate text-[12.5px] text-dim">
+    <div className="flex h-full flex-col">
+      <header className="shrink-0 border-b border-line bg-panel">
+        <div className="flex h-12 items-center justify-between gap-3 px-4">
+          <div className="flex min-w-0 items-center gap-4">
+            <button onClick={() => setModule("dashboard")} className="flex shrink-0 items-center gap-2">
+              <svg viewBox="0 0 32 32" className="h-7 w-7 text-acc">
+                <circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" strokeWidth="1.6" />
+                <circle cx="20.3" cy="16" r="8.7" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.6" />
+                <circle cx="24.6" cy="16" r="4.3" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.4" />
+                <line x1="3" y1="16" x2="29" y2="16" stroke="currentColor" strokeWidth="1" opacity="0.5" />
+              </svg>
+              <div className="text-left leading-tight">
+                <div className="text-[12.5px] font-semibold tracking-wide text-ink">RF ENGINEERING</div>
+                <div className="font-mono text-[10px] tracking-[0.25em] text-acc">WORKBENCH</div>
+              </div>
+            </button>
+            <span className="hidden min-w-0 truncate text-[12.5px] text-dim lg:inline">
               <BookOpen className="mr-1.5 inline h-3.5 w-3.5 text-faint" />
               {project.name}
             </span>
             <VnaBadge />
           </div>
-          <div className="relative flex items-center gap-3">
-            <Toggle checked={education} onChange={setEducation} label={<span className="flex items-center gap-1"><GraduationCap className="h-3.5 w-3.5" />Modo educativo</span>} />
-            <Btn small icon={<FolderOpen className="h-3.5 w-3.5" />} onClick={() => setProjOpen((v) => !v)}>Proyecto</Btn>
+          <div className="relative flex shrink-0 items-center gap-2.5">
+            <button onClick={() => setEducation(!education)} title="Muestra u oculta fórmulas, desarrollos paso a paso y explicaciones"
+              className={`inline-flex items-center gap-1.5 rounded border px-2.5 py-1 text-[12px] transition-colors ${education ? "border-acc/60 bg-acc/10 text-acc" : "border-line2 text-dim hover:text-ink"}`}>
+              <GraduationCap className="h-3.5 w-3.5" />Modo educativo: {education ? "activado" : "desactivado"}
+            </button>
+            <Btn small icon={theme.mode === "light" ? <Sun className="h-3.5 w-3.5" /> : <PaletteIcon className="h-3.5 w-3.5" />} onClick={() => { setThemeOpen((v) => !v); setProjOpen(false); }}>Tema</Btn>
+            <Btn small icon={<FolderOpen className="h-3.5 w-3.5" />} onClick={() => { setProjOpen((v) => !v); setThemeOpen(false); }}>Proyecto</Btn>
             <AnimatePresence>{projOpen && <ProjectMenu onClose={() => setProjOpen(false)} />}</AnimatePresence>
+            <AnimatePresence>{themeOpen && <ThemeMenu onClose={() => setThemeOpen(false)} />}</AnimatePresence>
           </div>
-        </header>
-        <main className="bg-grid min-h-0 flex-1 overflow-auto">
-          {/* Sin animación de salida: el cambio de módulo nunca espera a que termine una animación. */}
-          <motion.div key={module} initial={{ opacity: 0.4, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.14 }} className="mx-auto max-w-[1680px] p-5">
-            <Comp />
-          </motion.div>
-        </main>
-      </div>
+        </div>
+        <nav className="no-scrollbar flex gap-0.5 overflow-x-auto px-3">
+          {MODULES.map((m) => {
+            const Icon = m.icon;
+            const on = m.key === module;
+            return (
+              <button key={m.key} onClick={() => setModule(m.key)}
+                className={`relative flex shrink-0 items-center gap-1.5 whitespace-nowrap px-3 pb-2 pt-1.5 text-[12.5px] transition-colors ${on ? "text-acc" : "text-dim hover:text-ink"}`}>
+                <Icon className="h-4 w-4" />
+                <span>{m.label}</span>
+                {m.key === "reports" && report.length > 0 && <span className="rounded bg-acc/15 px-1.5 font-mono text-[10px] text-acc">{report.length}</span>}
+                {on && <motion.span layoutId="nav-active" className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-acc" transition={{ type: "spring", stiffness: 500, damping: 40 }} />}
+              </button>
+            );
+          })}
+        </nav>
+      </header>
+      <main className="bg-grid min-h-0 flex-1 overflow-auto">
+        {/* Sin animación de salida: el cambio de módulo nunca espera a que termine una animación. */}
+        <motion.div key={module} initial={{ opacity: 0.4, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.14 }} className="mx-auto max-w-[1720px] p-5">
+          <Comp />
+        </motion.div>
+      </main>
       <div className="pointer-events-none fixed bottom-4 right-4 z-50 flex w-[380px] flex-col gap-2">
         <AnimatePresence>
           {toasts.map((t) => (
             <motion.div key={t.id} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} onClick={() => dropToast(t.id)}
-              className={`pointer-events-auto cursor-pointer rounded border px-3 py-2 text-[12.5px] shadow-xl backdrop-blur ${t.kind === "err" ? "border-err/50 bg-[#2a0f12]/95 text-[#ffc2c2]" : t.kind === "ok" ? "border-acc/40 bg-[#07211a]/95 text-[#b6f5d8]" : "border-line2 bg-panel/95 text-ink"}`}>
+              className={`pointer-events-auto cursor-pointer rounded border bg-panel px-3 py-2 text-[12.5px] shadow-xl ${t.kind === "err" ? "border-err/50 text-err" : t.kind === "ok" ? "border-acc/50 text-acc" : "border-line2 text-ink"}`}>
               {t.text}
             </motion.div>
           ))}

@@ -1,6 +1,7 @@
+import { EduNote } from "../components/EduNote";
 import { Pin, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { PALETTE, Plot } from "../components/Plot";
+import { Plot, usePalette } from "../components/Plot";
 import { ReportButton, decimate } from "../components/ReportButton";
 import { SmithChart } from "../components/SmithChart";
 import { Steps } from "../components/Steps";
@@ -8,6 +9,7 @@ import { Btn, Field, Grid, Input, KV, Note, OriginBadge, PageHeader, Panel, Seg,
 import { get, post, type Origin } from "../lib/api";
 import { arr, cx, fmt, hz, num, pairs } from "../lib/format";
 import { useForm } from "../lib/store";
+import { useTheme } from "../lib/theme";
 
 type Pinned = { label: string; origin: Origin; f: number[]; s11db: number[]; vswr: number[]; g: [number, number][] };
 const DEF = {
@@ -17,6 +19,8 @@ const DEF = {
 };
 
 export function AntennaModule() {
+  const T = useTheme();
+  const PALETTE = usePalette();
   const [s, set] = useForm("antenna", DEF);
   const [list, setList] = useState<any[]>([]);
   useEffect(() => { get("/datasets").then(setList).catch(() => {}); }, []);
@@ -60,7 +64,8 @@ export function AntennaModule() {
 
   return (
     <div>
-      <PageHeader index={7} title="Antenna Analyzer" desc="Magnitudes de puerto de la antena: S11, VSWR, Return Loss, impedancia, resonancia, ancho de banda y Q." right={<>{r && <OriginBadge origin={r.origin} detail={r.source_detail} />}<ReportButton build={buildReport} disabled={!r} /></>} />
+      <PageHeader index={8} title="Antenna Analyzer" desc="Magnitudes de puerto de la antena: S11, VSWR, Return Loss, impedancia, resonancia, ancho de banda y Q." right={<>{r && <OriginBadge origin={r.origin} detail={r.source_detail} />}<ReportButton build={buildReport} disabled={!r} /></>} />
+      <EduNote>El S11 de una antena indica cuánta potencia se <b>refleja</b> en su puerto, no cuánta se <b>radia</b>: una carga resistiva de 50 Ω tiene S11 perfecto y no radia nada. Por eso ganancia, directividad y eficiencia sólo pueden obtenerse de medidas de campo o de un modelo electromagnético. La resonancia (X = 0) y el ancho de banda con VSWR ≤ 2 son propiedades del puerto.</EduNote>
       <Note kind="warn" className="mb-3">Ganancia, directividad, eficiencia y diagrama de radiación no pueden obtenerse de S11 ni de la impedancia medida. Sólo se calculan con la fuente «Modelo EM (hilo)»: un modelo analítico de dipolos y monopolos delgados ideales (Balanis). Es un resultado de modelo, no una medición, y no incluye entorno, cable ni plano de masa finito.</Note>
       <div className="grid grid-cols-1 gap-3 xl:grid-cols-[330px_minmax(0,1fr)]">
         <div className="space-y-3">
@@ -127,9 +132,9 @@ export function AntennaModule() {
               </Panel>
               <Panel title="Diagrama de radiación (plano E)" sub="dB normalizados · θ desde el eje del hilo" pad={false}>
                 <Plot height={380} data={[{ type: "scatterpolar", mode: "lines", theta: [...arr(em.pattern.theta_deg), ...arr(em.pattern.theta_deg).map((x) => 360 - x).reverse()],
-                  r: [...arr(em.pattern.db), ...arr(em.pattern.db).reverse()], line: { color: "#2fe39a", width: 2 }, fill: "toself", fillcolor: "rgba(47,227,154,0.08)", name: "|E| (dB)" }]}
-                  layout={{ showlegend: false, margin: { l: 30, r: 30, t: 20, b: 20 }, polar: { bgcolor: "#070c0e", angularaxis: { rotation: 90, direction: "clockwise", gridcolor: "#15222a", tickfont: { size: 9, color: "#7f9089" } },
-                    radialaxis: { range: [-40, 0], gridcolor: "#15222a", tickfont: { size: 9, color: "#7f9089" }, ticksuffix: " dB" } } }} />
+                  r: [...arr(em.pattern.db), ...arr(em.pattern.db).reverse()], line: { color: T.acc, width: 2 }, fill: "toself", fillcolor: T.accSoft, name: "|E| (dB)" }]}
+                  layout={{ showlegend: false, margin: { l: 30, r: 30, t: 20, b: 20 }, polar: { bgcolor: T.plotBg, angularaxis: { rotation: 90, direction: "clockwise", gridcolor: T.grid, tickfont: { size: 9, color: T.dim } },
+                    radialaxis: { range: [-40, 0], gridcolor: T.grid, tickfont: { size: 9, color: T.dim }, ticksuffix: " dB" } } }} />
                 {em.kind === "monopole" && <p className="px-3 pb-2 text-2xs text-faint">Monopolo: sólo existe radiación en el semiespacio superior (θ ≤ 90°).</p>}
               </Panel>
             </Grid>
@@ -144,15 +149,15 @@ export function AntennaModule() {
             </Grid>
             <Grid>
               <Panel title="|S11| y VSWR" pad={false}><Plot height={270} data={[{ x: f, y: arr(r.s11_db), name: `|S11| ${r.label}` }, ...s.pinned.map((p, i) => ({ x: p.f, y: p.s11db, name: p.label, line: { dash: "dash", width: 1.2, color: PALETTE[(i + 1) % PALETTE.length] } }))]}
-                layout={{ xaxis: { title: { text: "Frecuencia (Hz)" } }, yaxis: { title: { text: "|S11| (dB)" } }, shapes: band ? [{ type: "rect", x0: band.f_low, x1: band.f_high, yref: "paper", y0: 0, y1: 1, fillcolor: "rgba(47,227,154,0.06)", line: { width: 0 } }] : [] }} /></Panel>
-              <Panel title="Impedancia de entrada" pad={false}><Plot height={270} data={[{ x: f, y: arr(r.z.re), name: "R" }, { x: f, y: arr(r.z.im), name: "X" }]} layout={{ xaxis: { title: { text: "Frecuencia (Hz)" } }, yaxis: { title: { text: "Ω" } }, shapes: [{ type: "line", xref: "paper", x0: 0, x1: 1, y0: 0, y1: 0, line: { color: "#4c5c56", width: 1 } }] }} /></Panel>
+                layout={{ xaxis: { title: { text: "Frecuencia (Hz)" } }, yaxis: { title: { text: "|S11| (dB)" } }, shapes: band ? [{ type: "rect", x0: band.f_low, x1: band.f_high, yref: "paper", y0: 0, y1: 1, fillcolor: T.accSoft, line: { width: 0 } }] : [] }} /></Panel>
+              <Panel title="Impedancia de entrada" pad={false}><Plot height={270} data={[{ x: f, y: arr(r.z.re), name: "R" }, { x: f, y: arr(r.z.im), name: "X" }]} layout={{ xaxis: { title: { text: "Frecuencia (Hz)" } }, yaxis: { title: { text: "Ω" } }, shapes: [{ type: "line", xref: "paper", x0: 0, x1: 1, y0: 0, y1: 0, line: { color: T.faint, width: 1 } }] }} /></Panel>
             </Grid>
             <Grid cols="lg:grid-cols-[minmax(0,440px)_minmax(0,1fr)]">
               <Panel title="Carta de Smith" pad={false}><div className="aspect-square w-full p-1.5"><SmithChart z0={s.z0} vswrCircles={[(s.vswrT - 1) / (s.vswrT + 1)]}
-                traces={[{ pts: pairs(r.gamma), color: "#2fe39a", width: 1.8 }, ...s.pinned.map((p, i) => ({ pts: p.g, color: PALETTE[(i + 1) % PALETTE.length], width: 1.2, dash: true }))]} /></div>
+                traces={[{ pts: pairs(r.gamma), color: T.acc, width: 1.8 }, ...s.pinned.map((p, i) => ({ pts: p.g, color: PALETTE[(i + 1) % PALETTE.length], width: 1.2, dash: true }))]} /></div>
                 <p className="px-3 pb-2 text-2xs text-faint">Círculo discontinuo: VSWR = {s.vswrT} (|Γ| = {fmt((s.vswrT - 1) / (s.vswrT + 1), 4)}). Puntos dentro → adaptación aceptable.</p></Panel>
               <div className="space-y-3">
-                <Panel title="VSWR" pad={false}><Plot height={200} data={[{ x: f, y: arr(r.vswr).map((v) => Math.min(v, 20)), name: "VSWR", line: { color: "#f0b44c" } }]} layout={{ xaxis: { title: { text: "Frecuencia (Hz)" } }, yaxis: { title: { text: "VSWR" }, range: [1, 8] }, shapes: [{ type: "line", xref: "paper", x0: 0, x1: 1, y0: s.vswrT, y1: s.vswrT, line: { color: "#ff7a8a", dash: "dash", width: 1 } }] }} /></Panel>
+                <Panel title="VSWR" pad={false}><Plot height={200} data={[{ x: f, y: arr(r.vswr).map((v) => Math.min(v, 20)), name: "VSWR", line: { color: T.warn } }]} layout={{ xaxis: { title: { text: "Frecuencia (Hz)" } }, yaxis: { title: { text: "VSWR" }, range: [1, 8] }, shapes: [{ type: "line", xref: "paper", x0: 0, x1: 1, y0: s.vswrT, y1: s.vswrT, line: { color: T.err, dash: "dash", width: 1 } }] }} /></Panel>
                 <Panel title="Puntos de adaptación y resonancias">
                   <KV dense rows={[
                     ...r.bands.map((b: any, i: number) => [`Banda #${i + 1}`, `${hz(b.f_low, 5)} – ${hz(b.f_high, 5)}`, `${fmt(num(b.fractional) * 100, 3)} %`] as any),

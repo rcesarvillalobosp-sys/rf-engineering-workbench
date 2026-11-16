@@ -32,7 +32,7 @@ export function Field(props: { label: React.ReactNode; hint?: React.ReactNode; c
 }
 
 const inputCls =
-  "w-full rounded border border-line2 bg-panel2 px-2.5 py-1.5 text-[13px] text-ink outline-none transition-colors placeholder:text-faint focus:border-acc/70 focus:bg-[#0f1a1e]";
+  "w-full rounded border border-line2 bg-panel2 px-2.5 py-1.5 text-[13px] text-ink outline-none transition-colors placeholder:text-faint focus:border-acc/70 focus:bg-panel";
 
 export function Input(props: React.InputHTMLAttributes<HTMLInputElement> & { mono?: boolean; suffix?: string }) {
   const { mono = true, suffix, className = "", ...rest } = props;
@@ -62,7 +62,7 @@ export function Select<T extends string>(props: { value: T; onChange: (v: T) => 
 export function Btn(props: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "ghost" | "danger" | "subtle"; loading?: boolean; icon?: React.ReactNode; small?: boolean }) {
   const { variant = "ghost", loading, icon, small, className = "", children, disabled, ...rest } = props;
   const v = {
-    primary: "bg-acc text-[#03140c] hover:bg-[#5cf0b4] border-acc font-semibold",
+    primary: "bg-acc text-onacc hover:bg-acc2 border-acc font-semibold",
     ghost: "border-line2 text-ink hover:border-acc/60 hover:text-acc bg-transparent",
     subtle: "border-transparent text-dim hover:text-ink hover:bg-white/5",
     danger: "border-err/40 text-err hover:bg-err/10",
@@ -87,7 +87,7 @@ export function Seg<T extends string>(props: { value: T; onChange: (v: T) => voi
           key={o.value}
           title={o.title}
           onClick={() => props.onChange(o.value)}
-          className={`relative rounded-[3px] ${props.small ? "px-2 py-0.5 text-2xs" : "px-2.5 py-1 text-[12px]"} transition-colors ${props.value === o.value ? "text-[#03140c]" : "text-dim hover:text-ink"}`}
+          className={`relative rounded-[3px] ${props.small ? "px-2 py-0.5 text-2xs" : "px-2.5 py-1 text-[12px]"} transition-colors ${props.value === o.value ? "text-onacc" : "text-dim hover:text-ink"}`}
         >
           {props.value === o.value && <motion.span layoutId={undefined} className="absolute inset-0 rounded-[3px] bg-acc" transition={{ duration: 0.15 }} />}
           <span className="relative">{o.label}</span>
@@ -141,10 +141,10 @@ export function Stat(props: { label: string; value: React.ReactNode; unit?: stri
 export function Note(props: { kind?: "info" | "warn" | "err" | "ok"; children: React.ReactNode; className?: string }) {
   const k = props.kind ?? "info";
   const map = {
-    info: ["border-info/30 bg-info/5 text-[#a9d4ff]", <Info key="i" className="mt-0.5 h-3.5 w-3.5 shrink-0" />],
-    warn: ["border-warn/30 bg-warn/5 text-[#f6d394]", <AlertTriangle key="w" className="mt-0.5 h-3.5 w-3.5 shrink-0" />],
-    err: ["border-err/40 bg-err/10 text-[#ffb3b3]", <XCircle key="e" className="mt-0.5 h-3.5 w-3.5 shrink-0" />],
-    ok: ["border-acc/30 bg-acc/5 text-[#a8f3cf]", <CheckCircle2 key="o" className="mt-0.5 h-3.5 w-3.5 shrink-0" />],
+    info: ["border-info/30 bg-info/10 text-info", <Info key="i" className="mt-0.5 h-3.5 w-3.5 shrink-0" />],
+    warn: ["border-warn/40 bg-warn/10 text-warn", <AlertTriangle key="w" className="mt-0.5 h-3.5 w-3.5 shrink-0" />],
+    err: ["border-err/40 bg-err/10 text-err", <XCircle key="e" className="mt-0.5 h-3.5 w-3.5 shrink-0" />],
+    ok: ["border-acc/40 bg-acc/10 text-acc", <CheckCircle2 key="o" className="mt-0.5 h-3.5 w-3.5 shrink-0" />],
   } as const;
   return (
     <div className={`flex gap-2 rounded border px-2.5 py-2 text-[12px] leading-snug ${map[k][0]} ${props.className ?? ""}`}>
@@ -156,10 +156,10 @@ export function Note(props: { kind?: "info" | "warn" | "err" | "ok"; children: R
 
 const ORIGIN_STYLE: Record<Origin, string> = {
   calculated: "border-acc/40 text-acc bg-acc/5",
-  simulated: "border-[#4fd1e8]/40 text-[#7fe0f0] bg-[#4fd1e8]/5",
+  simulated: "border-cyan/40 text-cyan bg-cyan/10",
   imported: "border-warn/40 text-warn bg-warn/5",
-  measured: "border-[#ff8a5c]/50 text-[#ffab8a] bg-[#ff8a5c]/10",
-  derived: "border-[#b58cff]/40 text-[#cdb3ff] bg-[#b58cff]/5",
+  measured: "border-orange/50 text-orange bg-orange/10",
+  derived: "border-violet/40 text-violet bg-violet/10",
 };
 
 export function OriginBadge({ origin, detail }: { origin: Origin; detail?: string }) {
@@ -177,6 +177,7 @@ export function Empty({ children }: { children: React.ReactNode }) {
 
 export function Collapse(props: { title: React.ReactNode; open?: boolean; children: React.ReactNode; right?: React.ReactNode }) {
   const [open, setOpen] = useState(props.open ?? false);
+  useEffect(() => { if (props.open !== undefined) setOpen(props.open); }, [props.open]);
   return (
     <div className="rounded border border-line">
       <button onClick={() => setOpen(!open)} className="flex w-full items-center justify-between px-3 py-2 text-left text-[12px] text-ink hover:bg-white/[0.02]">

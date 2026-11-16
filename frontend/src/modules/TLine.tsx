@@ -1,3 +1,4 @@
+import { EduNote } from "../components/EduNote";
 import { useEffect, useMemo, useState } from "react";
 import { Plot } from "../components/Plot";
 import { ReportButton, decimate } from "../components/ReportButton";
@@ -7,6 +8,7 @@ import { Field, Grid, Input, KV, Note, OriginBadge, PageHeader, Panel, Seg, Sele
 import { get, post } from "../lib/api";
 import { arr, cx, fmt, num, pairs, polar, si } from "../lib/format";
 import { useForm } from "../lib/store";
+import { useTheme } from "../lib/theme";
 
 const DEF = {
   lineType: "ideal", z0: 50, vf: 0.66, D: "2.95m", d: "0.9m", er: 2.25, W: "3.06m", h: "1.6m", erM: 4.4, cable: "", tM: "35u", tand: 0.02, rough: "0", lossModel: true, attenRef: "",
@@ -14,6 +16,7 @@ const DEF = {
 };
 
 export function TLineModule() {
+  const T = useTheme();
   const [s, set] = useForm("tline", DEF);
   const [cables, setCables] = useState<any[]>([]);
   useEffect(() => { get("/library?category=coax").then((r) => setCables(r.items)).catch(() => {}); }, []);
@@ -46,7 +49,7 @@ export function TLineModule() {
     };
   }, [prof, r, z0]);
 
-  const cursor = Number.isFinite(d[idx]) ? [{ type: "line", x0: d[idx], x1: d[idx], yref: "paper", y0: 0, y1: 1, line: { color: "#f0b44c", dash: "dot", width: 1 } }] : [];
+  const cursor = Number.isFinite(d[idx]) ? [{ type: "line", x0: d[idx], x1: d[idx], yref: "paper", y0: 0, y1: 1, line: { color: T.warn, dash: "dot", width: 1 } }] : [];
   const loadLabel = { open: "Circuito abierto", short: "Cortocircuito", matched: "Adaptada (ZL = Z0)", arbitrary: `ZL = ${s.zl} Ω` }[s.load as "open"];
 
   const buildReport = () => r && ({
@@ -62,7 +65,8 @@ export function TLineModule() {
 
   return (
     <div>
-      <PageHeader index={5} title="Transmission Lines" desc="Propagación, transformación de impedancias y onda estacionaria. d se mide desde la carga hacia el generador." right={<><OriginBadge origin="calculated" /><ReportButton build={buildReport} disabled={!r} /></>} />
+      <PageHeader index={6} title="Transmission Lines" desc="Propagación, transformación de impedancias y onda estacionaria. d se mide desde la carga hacia el generador." right={<><OriginBadge origin="calculated" /><ReportButton build={buildReport} disabled={!r} /></>} />
+      <EduNote>En una línea, tensión y corriente son la suma de una onda incidente y otra reflejada; su interferencia crea la <b>onda estacionaria</b> (máximos y mínimos separados λ/4). Al alejarse de la carga, la impedancia vista gira en la carta de Smith y se repite cada <b>λ/2</b>. Con pérdidas, el punto describe una espiral hacia el centro: el VSWR medido en la entrada es mejor que el de la carga.</EduNote>
       <div className="grid grid-cols-1 gap-3 xl:grid-cols-[340px_minmax(0,1fr)]">
         <div className="space-y-3">
           <Panel title="Línea">
@@ -129,13 +133,13 @@ export function TLineModule() {
               <Grid cols="lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
                 <Panel title="Γ a lo largo de la línea" sub="Carga → generador" pad={false}>
                   <div className="aspect-square w-full p-1.5">
-                    <SmithChart z0={z0} traces={[{ pts: pairs(prof.gamma), color: "#58b4ff", width: 1.8, arrow: true }]}
-                      points={[{ g: [r.gamma_load.re, r.gamma_load.im], label: "ZL", color: "#f0b44c" }, { g: [r.gamma_in.re, r.gamma_in.im], label: "Zin", color: "#2fe39a" }, ...(at?.g.re != null ? [{ g: [at.g.re, at.g.im] as [number, number], label: "d", color: "#ff7a8a", hollow: true }] : [])]} />
+                    <SmithChart z0={z0} traces={[{ pts: pairs(prof.gamma), color: T.info, width: 1.8, arrow: true }]}
+                      points={[{ g: [r.gamma_load.re, r.gamma_load.im], label: "ZL", color: T.warn }, { g: [r.gamma_in.re, r.gamma_in.im], label: "Zin", color: T.acc }, ...(at?.g.re != null ? [{ g: [at.g.re, at.g.im] as [number, number], label: "d", color: T.err, hollow: true }] : [])]} />
                   </div>
                 </Panel>
                 <div className="space-y-3">
                   <Panel title="Posición sobre la línea">
-                    <input type="range" min={0} max={1} step={0.001} value={s.pos} onChange={(e) => set({ pos: Number(e.target.value) })} className="w-full accent-[#2fe39a]" />
+                    <input type="range" min={0} max={1} step={0.001} value={s.pos} onChange={(e) => set({ pos: Number(e.target.value) })} className="w-full accent-acc" />
                     {at && <KV dense rows={[["d (desde la carga)", si(at.d, "m", 5), `${fmt(at.d / num(r.lambda), 4)} λ`], ["Z(d)", at.z.inf ? "∞" : cx(at.z as any)], ["Γ(d)", polar(at.g as any)]]} />}
                   </Panel>
                   <Panel title="Constantes y reflexión">

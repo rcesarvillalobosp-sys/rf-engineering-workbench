@@ -1,7 +1,8 @@
+import { EduNote } from "../components/EduNote";
 import { motion } from "motion/react";
 import { Dices } from "lucide-react";
 import { useMemo, useState } from "react";
-import { PALETTE, Plot } from "../components/Plot";
+import { Plot, usePalette } from "../components/Plot";
 import { ReportButton, decimate } from "../components/ReportButton";
 import { Ladder, elementsToLadder } from "../components/Schematic";
 import { SmithChart, type SmithTrace } from "../components/SmithChart";
@@ -10,6 +11,7 @@ import { Btn, Field, Grid, Input, KV, Note, OriginBadge, PageHeader, Panel, Seg,
 import { post } from "../lib/api";
 import { arr, cx, fmt, hz, num, pairs, si } from "../lib/format";
 import { useForm } from "../lib/store";
+import { useTheme } from "../lib/theme";
 
 const METHODS = [
   { value: "L", label: "Red L" }, { value: "PI", label: "Red Pi" }, { value: "T", label: "Red T" },
@@ -28,6 +30,8 @@ const DEF = {
 };
 
 export function MatchingModule() {
+  const T = useTheme();
+  const PALETTE = usePalette();
   const [s, set] = useForm("matching", DEF);
   const lumped = ["L", "PI", "T"].includes(s.method);
   const call = useCall(
@@ -60,10 +64,10 @@ export function MatchingModule() {
   const smith = useMemo(() => {
     if (!r || !sol) return null;
     const traces: SmithTrace[] = sol.trajectory_gamma.map((seg: any, i: number) => ({ pts: pairs(seg.gamma), color: PALETTE[(i + 1) % PALETTE.length], width: 2.2, arrow: true, name: seg.label }));
-    traces.push({ pts: pairs(sol.sweep.gamma_ref), color: "#4c5c56", width: 1, dash: true, name: "Zin(f)" });
+    traces.push({ pts: pairs(sol.sweep.gamma_ref), color: T.faint, width: 1, dash: true, name: "Zin(f)" });
     const pts = [
-      { g: [r.load_gamma.re, r.load_gamma.im] as [number, number], label: "ZL", color: "#f0b44c" },
-      { g: [r.target_gamma.re, r.target_gamma.im] as [number, number], label: "Zs*", color: "#2fe39a", hollow: true, size: 0.03 },
+      { g: [r.load_gamma.re, r.load_gamma.im] as [number, number], label: "ZL", color: T.warn },
+      { g: [r.target_gamma.re, r.target_gamma.im] as [number, number], label: "Zs*", color: T.acc, hollow: true, size: 0.03 },
     ];
     return { traces, pts };
   }, [r, sol]);
@@ -72,7 +76,7 @@ export function MatchingModule() {
   const plotData = sol ? [
     { x: f, y: arr(sol.sweep.s11_db).map(floorDb), name: "|Γ| (dB) ideal", line: { width: 1.8 } },
     ...(sol.snapped ? [{ x: arr(sol.snapped.sweep.f), y: arr(sol.snapped.sweep.s11_db).map(floorDb), name: `|Γ| (dB) ${sol.snapped.series}`, line: { width: 1.4, dash: "dash" } }] : []),
-    { x: f, y: arr(sol.sweep.vswr).map((v) => Math.min(v, 20)), name: "VSWR", yaxis: "y2", line: { width: 1.2, color: "#f0b44c" } },
+    { x: f, y: arr(sol.sweep.vswr).map((v) => Math.min(v, 20)), name: "VSWR", yaxis: "y2", line: { width: 1.2, color: T.warn } },
   ] : [];
   const bw = sol?.bandwidth;
   const f0 = num(r?.f0);
@@ -102,7 +106,8 @@ export function MatchingModule() {
 
   return (
     <div>
-      <PageHeader index={4} title="Matching Designer" desc="Diseño de redes de adaptación con verificación numérica de cada solución. Objetivo: Zin = Zs* (adaptación conjugada)." right={<><OriginBadge origin="calculated" /><ReportButton build={buildReport} disabled={!sol} /></>} />
+      <PageHeader index={5} title="Matching Designer" desc="Diseño de redes de adaptación con verificación numérica de cada solución. Objetivo: Zin = Zs* (adaptación conjugada)." right={<><OriginBadge origin="calculated" /><ReportButton build={buildReport} disabled={!sol} /></>} />
+      <EduNote>Adaptar es conseguir que la fuente vea el conjugado de su impedancia (Zin = Zs*), para que entregue toda su potencia disponible. Cada elemento reactivo desplaza el punto en la carta: en <b>serie</b> sobre un círculo de r constante y en <b>paralelo</b> sobre uno de g constante. La adaptación sólo es exacta en f0: fuera de ella el VSWR crece, y el <b>límite de Bode–Fano</b> fija el máximo ancho de banda posible con esa carga.</EduNote>
       <div className="grid grid-cols-1 gap-3 xl:grid-cols-[340px_minmax(0,1fr)]">
         <div className="space-y-3">
           <Panel title="Especificación">
@@ -154,7 +159,7 @@ export function MatchingModule() {
                       <span className="text-[12px] font-medium text-ink">#{i + 1} · {so.topology}</span>
                       <span className="font-mono text-2xs text-acc">VSWR {fmt(so.vswr_after, 4)}</span>
                     </div>
-                    <div className="mt-1 rounded bg-[#060a0c] px-1 py-0.5"><Ladder items={elementsToLadder(so.elements, lam)} left={{ kind: "source", label: "Zs" }} right={{ kind: "load", label: "ZL" }} height={140} /></div>
+                    <div className="mt-1 rounded bg-panel2 px-1 py-0.5"><Ladder items={elementsToLadder(so.elements, lam)} left={{ kind: "source", label: "Zs" }} right={{ kind: "load", label: "ZL" }} height={140} /></div>
                     <div className="mt-1 space-y-0.5 font-mono text-2xs text-dim">
                       {so.description.map((d: string, j: number) => <div key={j}>{d}</div>)}
                       <div>BW: {so.bandwidth ? `${fmt(so.bandwidth.fractional * 100, 3)} % (${hz(so.bandwidth.bw, 4)})` : "—"} · G_T(f0) = {fmt(tiny(so.transducer_gain_db_f0), 3)} dB</div>
@@ -176,7 +181,7 @@ export function MatchingModule() {
               <div className="space-y-3">
                 <Panel title="Respuesta en frecuencia" sub="Γ respecto a la fuente (onda de potencia)" pad={false}>
                   <Plot data={plotData} height={270} layout={{ xaxis: { title: { text: "Frecuencia (Hz)" } }, yaxis: { title: { text: "|Γ| (dB)" } }, yaxis2: { title: { text: "VSWR" }, range: [1, 10] },
-                    shapes: [{ type: "line", x0: f0, x1: f0, yref: "paper", y0: 0, y1: 1, line: { color: "#2fe39a", dash: "dot", width: 1 } }, ...(bw ? [{ type: "rect", x0: bw.f_low, x1: bw.f_high, yref: "paper", y0: 0, y1: 1, fillcolor: "rgba(47,227,154,0.06)", line: { width: 0 } }] : [])] }} />
+                    shapes: [{ type: "line", x0: f0, x1: f0, yref: "paper", y0: 0, y1: 1, line: { color: T.acc, dash: "dot", width: 1 } }, ...(bw ? [{ type: "rect", x0: bw.f_low, x1: bw.f_high, yref: "paper", y0: 0, y1: 1, fillcolor: T.accSoft, line: { width: 0 } }] : [])] }} />
                 </Panel>
                 <Panel title="Ganancia de transductor" sub={lumped && s.comp_q ? `Componentes con Q = ${s.comp_q}` : "Componentes ideales: 0 dB a f0"} pad={false}>
                   <Plot data={[{ x: f, y: arr(sol.sweep.gt_db), name: "G_T (dB)" }]} height={200} layout={{ xaxis: { title: { text: "Frecuencia (Hz)" } }, yaxis: { title: { text: "G_T (dB)" } } }} />
@@ -197,11 +202,11 @@ export function MatchingModule() {
               {mc && (
                 <div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-[220px_1fr_1fr]">
                   <KV dense rows={[["Rendimiento VSWR ≤ " + s.vswr_target, `${fmt(mc.yield_f0 * 100, 4)} %`], ["VSWR medio (f0)", fmt(mc.vswr_f0.mean, 4)], ["VSWR mediana", fmt(mc.vswr_f0.p50, 4)], ["VSWR p95", fmt(mc.vswr_f0.p95, 4)], ["VSWR máximo", fmt(mc.vswr_f0.max, 4)]]} />
-                  <Plot height={210} data={[{ type: "bar", x: arr(mc.hist.edges).slice(0, -1).map((e, i) => (e + arr(mc.hist.edges)[i + 1]) / 2), y: arr(mc.hist.counts), marker: { color: "#2fe39a" }, name: "Muestras" }]} layout={{ hovermode: "closest", xaxis: { title: { text: "VSWR a f0" } }, yaxis: { title: { text: "N" } }, bargap: 0.05 }} />
+                  <Plot height={210} data={[{ type: "bar", x: arr(mc.hist.edges).slice(0, -1).map((e, i) => (e + arr(mc.hist.edges)[i + 1]) / 2), y: arr(mc.hist.counts), marker: { color: T.acc }, name: "Muestras" }]} layout={{ hovermode: "closest", xaxis: { title: { text: "VSWR a f0" } }, yaxis: { title: { text: "N" } }, bargap: 0.05 }} />
                   <Plot height={210} data={[
-                    { x: arr(mc.f), y: arr(mc.envelope.p95), name: "p95", line: { color: "#ff7a8a", width: 1 } },
-                    { x: arr(mc.f), y: arr(mc.envelope.p50), name: "mediana", line: { color: "#2fe39a", width: 1.6 } },
-                    { x: arr(mc.f), y: arr(mc.envelope.p5), name: "p5", line: { color: "#58b4ff", width: 1 } },
+                    { x: arr(mc.f), y: arr(mc.envelope.p95), name: "p95", line: { color: T.err, width: 1 } },
+                    { x: arr(mc.f), y: arr(mc.envelope.p50), name: "mediana", line: { color: T.acc, width: 1.6 } },
+                    { x: arr(mc.f), y: arr(mc.envelope.p5), name: "p5", line: { color: T.info, width: 1 } },
                   ]} layout={{ xaxis: { title: { text: "Frecuencia (Hz)" } }, yaxis: { title: { text: "VSWR" }, range: [1, 5] } }} />
                 </div>
               )}

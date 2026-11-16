@@ -1,6 +1,7 @@
+import { EduNote } from "../components/EduNote";
 import { Download, ExternalLink, Save, Trash2, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { PALETTE, Plot } from "../components/Plot";
+import { Plot, usePalette } from "../components/Plot";
 import { SmithChart } from "../components/SmithChart";
 import { Btn, Empty, KV, Note, OriginBadge, PageHeader, Panel, Select, Table } from "../components/ui";
 import { del, download, get, post } from "../lib/api";
@@ -10,6 +11,7 @@ import { useStore } from "../lib/store";
 type Parsed = { filename: string; text: string; res?: any; error?: string };
 
 export function TouchstoneModule() {
+  const PALETTE = usePalette();
   const { toast, setModule, setForm } = useStore();
   const [files, setFiles] = useState<Parsed[]>([]);
   const [cur, setCur] = useState(0);
@@ -51,7 +53,8 @@ export function TouchstoneModule() {
 
   return (
     <div>
-      <PageHeader index={9} title="Touchstone Importer" desc="Importación de archivos .s1p, .s2p, .s3p, .s4p (Touchstone v1.x y v2.0): formatos RI/MA/DB, parámetros S/Y/Z y H/G (2 puertos), unidades Hz–GHz. Cada archivo se valida y se contrasta con scikit-rf." right={<OriginBadge origin="imported" />} />
+      <PageHeader index={10} title="Touchstone Importer" desc="Importación de archivos .s1p, .s2p, .s3p, .s4p (Touchstone v1.x y v2.0): formatos RI/MA/DB, parámetros S/Y/Z y H/G (2 puertos), unidades Hz–GHz. Cada archivo se valida y se contrasta con scikit-rf." right={<OriginBadge origin="imported" />} />
+      <EduNote>Touchstone es el formato estándar de intercambio de parámetros de red. La línea de opciones «# GHz S MA R 50» indica la unidad de frecuencia, el tipo de parámetro, el formato numérico (RI real/imaginario, MA magnitud/ángulo, DB dB/ángulo) y la impedancia de referencia. En 2 puertos (v1) el orden es S11 S21 S12 S22.</EduNote>
       <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="space-y-3">
           <div onDragOver={(e) => { e.preventDefault(); setDrag(true); }} onDragLeave={() => setDrag(false)} onDrop={(e) => { e.preventDefault(); setDrag(false); ingest(e.dataTransfer.files); }}

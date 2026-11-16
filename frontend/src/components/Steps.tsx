@@ -7,10 +7,11 @@ import { Collapse } from "./ui";
 /** Modo educativo: fórmula → sustitución → resultado → interpretación. */
 export function Steps({ steps, title = "Procedimiento matemático", open }: { steps?: Step[] | null; title?: string; open?: boolean }) {
   const education = useStore((s) => s.education);
-  if (!steps?.length) return null;
+  // Modo educativo desactivado: sin desarrollos paso a paso (interfaz profesional compacta).
+  if (!steps?.length || !education) return null;
   return (
     <Collapse
-      open={open ?? education}
+      open={open ?? true}
       title={
         <span className="flex items-center gap-2">
           <GraduationCap className="h-3.5 w-3.5 text-acc" />
@@ -25,7 +26,7 @@ export function Steps({ steps, title = "Procedimiento matemático", open }: { st
             <span className="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full border border-acc/40 font-mono text-[10px] text-acc">{i + 1}</span>
             <div className="min-w-0">
               <div className="text-[12.5px] font-medium text-ink">{s.title}</div>
-              <div className="mt-0.5 overflow-x-auto whitespace-nowrap rounded bg-[#060a0c] px-2 py-1 font-mono text-[12px] text-[#9fe9c8]">{s.formula}</div>
+              <div className="mt-0.5 overflow-x-auto whitespace-nowrap rounded bg-panel2 px-2 py-1 font-mono text-[12px] text-acc">{s.formula}</div>
               {s.substitution && <div className="mt-0.5 overflow-x-auto whitespace-nowrap font-mono text-[11.5px] text-dim">{s.substitution}</div>}
               {s.result && (
                 <div className="mt-0.5 font-mono text-[12px] text-ink">

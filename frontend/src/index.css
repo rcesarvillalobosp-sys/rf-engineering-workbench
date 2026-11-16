@@ -8,8 +8,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Valores por defecto (tema oscuro, acento esmeralda) hasta que theme.ts aplique el tema guardado */
 :root {
   color-scheme: dark;
+  --bg: 10 14 19; --panel: 16 22 29; --panel2: 21 29 38; --line: 31 42 53; --line2: 43 57 70;
+  --ink: 226 232 240; --dim: 139 154 171; --faint: 90 104 120; --acc: 52 211 153; --acc2: 103 222 178; --onacc: 6 18 13;
+  --warn: 251 191 36; --err: 248 113 113; --info: 96 165 250; --violet: 167 139 250; --cyan: 34 211 238; --orange: 251 146 60;
 }
 html,
 body,
@@ -21,26 +25,32 @@ body {
   font-size: 13px;
 }
 ::selection {
-  background: rgba(47, 227, 154, 0.3);
+  background: rgb(var(--acc) / 0.3);
 }
 * {
   scrollbar-width: thin;
-  scrollbar-color: #22323a transparent;
+  scrollbar-color: rgb(var(--line2)) transparent;
 }
 input[type="number"]::-webkit-inner-spin-button {
   opacity: 0.4;
 }
 .bg-grid {
-  background-image: linear-gradient(rgba(47, 227, 154, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(47, 227, 154, 0.025) 1px, transparent 1px);
+  background-image: linear-gradient(rgb(var(--acc) / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--acc) / 0.035) 1px, transparent 1px);
   background-size: 28px 28px;
 }
 .js-plotly-plot .plotly .modebar {
   background: transparent !important;
 }
 .js-plotly-plot .plotly .modebar-btn path {
-  fill: #4c5c56 !important;
+  fill: rgb(var(--faint)) !important;
 }
 .js-plotly-plot .plotly .modebar-btn:hover path {
-  fill: #2fe39a !important;
+  fill: rgb(var(--acc)) !important;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }

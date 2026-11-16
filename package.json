@@ -1,6 +1,6 @@
 {
   "name": "rf-engineering-workbench",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "RF Engineering Workbench â€” anÃ¡lisis, simulaciÃ³n y diseÃ±o de sistemas RF",
   "main": "electron/main.cjs",
   "private": true,

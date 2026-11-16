@@ -1,3 +1,4 @@
+import { EduNote } from "../components/EduNote";
 import { Cable, Play, Plug, PlugZap, Radar, Ruler, Square } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Plot } from "../components/Plot";
@@ -138,11 +139,12 @@ export function VNAModule() {
 
   return (
     <div>
-      <PageHeader index={10} title="VNA Integration" desc="Conexión con analizadores vectoriales de redes reales. La aplicación nunca simula una conexión física: sin instrumento trabaja en modo simulación con datos calculados o importados." />
-      <div className={`mb-3 flex items-center gap-3 rounded-md border px-4 py-3 ${status?.connected ? "border-[#ff8a5c]/50 bg-[#ff8a5c]/10" : "border-line2 bg-panel"}`}>
-        {status?.connected ? <PlugZap className="h-5 w-5 text-[#ff8a5c]" /> : <Plug className="h-5 w-5 text-dim" />}
+      <PageHeader index={11} title="VNA Integration" desc="Conexión con analizadores vectoriales de redes reales. La aplicación nunca simula una conexión física: sin instrumento trabaja en modo simulación con datos calculados o importados." />
+      <EduNote>Un VNA mide relaciones complejas entre ondas incidentes y reflejadas, pero cables, conectores y acopladores introducen errores sistemáticos. La <b>calibración</b> los modela con términos de error (3 por puerto en SOL, 12 en SOLT) que se calculan midiendo estándares conocidos (Open, Short, Load, Thru) y después se eliminan de la medida del dispositivo.</EduNote>
+      <div className={`mb-3 flex items-center gap-3 rounded-md border px-4 py-3 ${status?.connected ? "border-orange/50 bg-orange/10" : "border-line2 bg-panel"}`}>
+        {status?.connected ? <PlugZap className="h-5 w-5 text-orange" /> : <Plug className="h-5 w-5 text-dim" />}
         <div className="flex-1">
-          <div className={`text-[14px] font-semibold ${status?.connected ? "text-[#ffab8a]" : "text-ink"}`}>{status?.label ?? "…"}</div>
+          <div className={`text-[14px] font-semibold ${status?.connected ? "text-orange" : "text-ink"}`}>{status?.label ?? "…"}</div>
           {status?.connected && <div className="font-mono text-2xs text-dim">{status.driver_name} · {status.address} · {status.idn}</div>}
         </div>
         {status?.connected && <OriginBadge origin="measured" />}

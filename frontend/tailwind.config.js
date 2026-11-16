@@ -1,23 +1,12 @@
 /** @type {import('tailwindcss').Config} */
+// Colores definidos como variables CSS «r g b» por src/lib/theme.ts (tema claro/oscuro y acento).
+const v = (n) => `rgb(var(--${n}) / <alpha-value>)`;
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
-      colors: {
-        bg: "#05080a",
-        panel: "#0a1013",
-        panel2: "#0e161a",
-        line: "#18242a",
-        line2: "#22323a",
-        ink: "#d6e2dd",
-        dim: "#7f9089",
-        faint: "#4c5c56",
-        acc: "#2fe39a",
-        acc2: "#1fb67a",
-        warn: "#f0b44c",
-        err: "#ff6b6b",
-        info: "#58b4ff",
-      },
+      colors: Object.fromEntries(["bg", "panel", "panel2", "line", "line2", "ink", "dim", "faint", "acc", "acc2", "onacc",
+        "warn", "err", "info", "violet", "cyan", "orange"].map((k) => [k, v(k)])),
       fontFamily: {
         sans: ['"IBM Plex Sans"', "system-ui", "sans-serif"],
         mono: ['"JetBrains Mono"', "ui-monospace", "monospace"],

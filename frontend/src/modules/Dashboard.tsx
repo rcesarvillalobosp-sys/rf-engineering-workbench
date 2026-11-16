@@ -1,5 +1,6 @@
+import { EduNote } from "../components/EduNote";
 import { motion } from "motion/react";
-import { Activity, Antenna, ArrowRight, CircleDot, Cpu, FileInput, FileText, GitBranch, Library, Radio, RefreshCw, ShieldCheck, Waves } from "lucide-react";
+import { Activity, Antenna, ArrowRight, CircleDot, Cpu, FileInput, FileText, GitBranch, Library, Network, Radio, RefreshCw, ShieldCheck, Waves } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Btn, Collapse, Note, OriginBadge, PageHeader, Panel, Table } from "../components/ui";
 import { CONCEPTS } from "../content/concepts";
@@ -9,6 +10,7 @@ import { type ModuleKey, useStore } from "../lib/store";
 
 const CARDS: { key: ModuleKey; title: string; icon: any; desc: string }[] = [
   { key: "smith", title: "Smith Chart", icon: CircleDot, desc: "Impedancias, admitancias, Γ, VSWR y transformación por líneas sobre una carta exacta e interactiva." },
+  { key: "circuit", title: "Circuit Builder", icon: Network, desc: "Construya su red elemento a elemento y vea en vivo cómo se mueve la impedancia en la carta de Smith." },
   { key: "impedance", title: "Impedance Analyzer", icon: Activity, desc: "Circuitos R, L, C serie/paralelo y redes arbitrarias, potencias y barridos con desarrollo paso a paso." },
   { key: "matching", title: "Matching Designer", icon: GitBranch, desc: "Redes L, Pi, T, λ/4 y stubs simples/dobles con ancho de banda, Bode–Fano y Monte Carlo." },
   { key: "tline", title: "Transmission Lines", icon: Waves, desc: "Propagación, Zin, Γ(d), VSWR, onda estacionaria y balance de potencias en líneas con pérdidas." },
@@ -23,6 +25,7 @@ const CARDS: { key: ModuleKey; title: string; icon: any; desc: string }[] = [
 export function Dashboard() {
   const setModule = useStore((s) => s.setModule);
   const report = useStore((s) => s.report);
+  const education = useStore((s) => s.education);
   const [health, setHealth] = useState<any>(null);
   const [datasets, setDatasets] = useState<any[]>([]);
   const [self, setSelf] = useState<any>(null);
@@ -46,6 +49,7 @@ export function Dashboard() {
   return (
     <div>
       <PageHeader index={1} title="Dashboard" desc="Plataforma de análisis, simulación y diseño de sistemas RF. Funciona sin instrumento: todos los resultados proceden del motor matemático, de modelos o de archivos importados, y cada dato indica su origen." />
+      <EduNote>Este modo añade explicaciones como ésta en cada módulo y muestra el desarrollo paso a paso de cada cálculo (fórmula, sustitución, resultado e interpretación). Desactívelo en la barra superior para una vista profesional compacta.</EduNote>
       {err && <Note kind="err" className="mb-3">No se puede contactar con el motor RF: {err}</Note>}
       <div className="grid grid-cols-1 gap-3 xl:grid-cols-[1fr_380px]">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-3">
@@ -53,7 +57,7 @@ export function Dashboard() {
             const Icon = c.icon;
             return (
               <motion.button key={c.key} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }} onClick={() => setModule(c.key)}
-                className="group rounded-md border border-line bg-panel p-4 text-left transition-colors hover:border-acc/40 hover:bg-[#0c1517]">
+                className="group rounded-md border border-line bg-panel p-4 text-left transition-colors hover:border-acc/40 hover:bg-panel2">
                 <div className="flex items-center justify-between">
                   <Icon className="h-5 w-5 text-acc" />
                   <ArrowRight className="h-4 w-4 text-faint transition-transform group-hover:translate-x-0.5 group-hover:text-acc" />
@@ -102,7 +106,7 @@ export function Dashboard() {
           </Panel>
         </div>
       </div>
-      <div className="mt-3">
+      {education && <div className="mt-3">
         <Panel title="Conceptos fundamentales" sub="Modo educativo">
           <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
             {CONCEPTS.map((c) => (
@@ -112,7 +116,7 @@ export function Dashboard() {
             ))}
           </div>
         </Panel>
-      </div>
+      </div>}
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { EduNote } from "../components/EduNote";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Plot } from "../components/Plot";
@@ -39,7 +40,8 @@ export function LibraryModule() {
   const m = model.data as any;
   return (
     <div>
-      <PageHeader index={8} title="Component Library" desc="Componentes ideales y modelos reales (Q, ESR, SRF). Los componentes genéricos no tienen fabricante; añada piezas reales con datos de su hoja de características." right={<Btn variant="primary" small icon={<Plus className="h-3.5 w-3.5" />} onClick={() => setEdit({ ...EMPTY })}>Nuevo componente</Btn>} />
+      <PageHeader index={9} title="Component Library" desc="Componentes ideales y modelos reales (Q, ESR, SRF). Los componentes genéricos no tienen fabricante; añada piezas reales con datos de su hoja de características." right={<Btn variant="primary" small icon={<Plus className="h-3.5 w-3.5" />} onClick={() => setEdit({ ...EMPTY })}>Nuevo componente</Btn>} />
+      <EduNote>Un componente <b>ideal</b> sólo tiene su valor nominal. Uno <b>real</b> tiene parásitos: una bobina tiene resistencia (Q finito) y capacidad entre espiras que la hace resonar en su <b>SRF</b>; por encima de ella se comporta como un condensador. Un condensador tiene ESR e inductancia en serie y, por encima de su SRF, es inductivo.</EduNote>
       <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1fr)_420px]">
         <Panel title={`Componentes (${items.length})`} actions={<div className="flex gap-2"><Select value={cat} onChange={setCat} options={[{ value: "", label: "Todas las categorías" }, ...Object.entries<string>(data?.categories ?? {}).map(([v, l]) => ({ value: v, label: l }))]} /><Input mono={false} placeholder="Buscar…" value={q} onChange={(e) => setQ(e.target.value)} /></div>}>
           <div className="max-h-[calc(100vh-230px)] overflow-auto">
