@@ -1,0 +1,88 @@
+\chapter{Cómo está construida la aplicación}
+
+La regla de oro del diseño es que \textbf{cada fórmula existe en un único sitio: el motor}. Todo lo demás (API, interfaz, informes) sólo
+transporta y presenta sus resultados. Así, una corrección en el motor se refleja automáticamente en todos los módulos, y las pruebas
+validan exactamente el código que se usa.
+
+\begin{figure}[h]\centering
+\includegraphics[width=\linewidth]{generado/arquitectura.pdf}
+\caption{Arquitectura: interfaz React dentro de Electron, API local FastAPI, motor de cálculo en Python y base de datos SQLite.}
+\end{figure}
+
+\section{Las capas}
+\begin{description}[style=nextline,leftmargin=1.2em]
+\item[Interfaz (frontend/src)] React 18 con TypeScript, Vite y Tailwind. Cada módulo es un componente en \texttt{modules/}. La carta de Smith
+es SVG propio (\texttt{components/SmithChart.tsx}); las gráficas usan Plotly. El estado de los formularios se guarda con zustand, de modo
+que al cambiar de módulo no se pierde lo escrito.
+\item[Escritorio (electron)] El proceso principal abre la ventana, arranca el motor como subproceso en un puerto libre que asigna el sistema
+operativo y lo detiene al cerrar. \texttt{contextIsolation} y un \texttt{preload} mínimo separan la interfaz del sistema.
+\item[API (backend/rfwb/api)] FastAPI. Valida y convierte las entradas, llama al motor y serializa la respuesta en JSON.
+\item[Motor (backend/rfwb/engine)] Python con NumPy y SciPy. Puro cálculo: no sabe nada de HTTP ni de la interfaz.
+\item[Datos (backend/rfwb/db.py)] SQLite: biblioteca de componentes, conjuntos de datos (datasets) y proyectos.
+\end{description}
+
+\section{Recorrido de un cálculo}
+\begin{enumerate}
+\item Se escribe \texttt{80+j30} en la interfaz. El módulo envía una petición HTTP local, por ejemplo \texttt{POST /api/rf/reflection}.
+\item La API valida la entrada: \texttt{parse\_complex} interpreta \texttt{80+j30}, \texttt{100}$\angle$\texttt{45} o \texttt{j25}, y
+\texttt{parse\_quantity} entiende prefijos (\texttt{10n}, \texttt{2.4G}).
+\item El motor calcula con números complejos de NumPy y, al mismo tiempo, rellena una \textbf{traza}: para cada paso guarda la fórmula, la
+sustitución con números, el resultado, la unidad y una interpretación.
+\item La respuesta se serializa: los complejos como \texttt{\{re, im\}} y el infinito como \texttt{"inf"} (JSON no admite infinitos).
+\item La interfaz muestra los valores; con el \emph{modo educativo} activo, también la traza paso a paso.
+\end{enumerate}
+
+\section{El motor por dentro}
+\begin{center}\small
+\begin{tabularx}{\linewidth}{@{}>{\ttfamily}p{5.2cm}X@{}}\toprule
+\normalfont\textbf{Archivo (engine/)} & \textbf{Contenido}\\ \midrule
+units.py & Unidades, prefijos SI, validación, parseo de complejos.\\
+reflection.py & $\Gamma$, VSWR, RL, mismatch loss, potencia reflejada, onda de potencia (cap.~\ref{cap:smith}).\\
+impedance.py & Reactancias, circuitos RLC, redes por expresión, modelos reales de L/C/R.\\
+network.py & Cascadas ABCD de elementos, líneas y stubs; $Z_{in}$; trayectorias en la carta.\\
+tline.py & Propagación, $Z_{in}$, onda estacionaria, geometrías (coaxial, bifilar, microstrip).\\
+matching.py & Redes L, Pi, T, $\lambda/4$, stubs, Bode--Fano, series E.\\
+sparams.py, stability.py, mixedmode.py & Conversiones S/Z/Y/ABCD/H/G, métricas, bandas, $K$/$\mu$, círculos, modo mixto.\\
+tdr.py, calibration.py, calkit.py & Dominio del tiempo; SOL propio y SOLT (scikit-rf); modelos de kits.\\
+antenna.py, antenna\_em.py & Análisis de puerto de antenas; modelo de hilo delgado.\\
+tolerance.py, selftest.py & Monte Carlo; autoverificación ejecutable desde el Dashboard.\\ \bottomrule
+\end{tabularx}
+\end{center}
+
+\section{Convenciones numéricas}
+\begin{itemize}
+\item Convención temporal $\ee^{+\jj\omega t}$: bobinas con $X>0$, condensadores con $X<0$.
+\item Todas las magnitudes internas en unidades SI base (\si{\hertz}, \si{\henry}, \si{\farad}, \si{\metre}); los prefijos sólo existen en la interfaz.
+\item Los barridos se calculan vectorizados: un array de frecuencias, una matriz por frecuencia (forma $N\times2\times2$ para cascadas).
+\item Las cargas en abierto se representan con $Z = \infty$ y se tratan aparte ($\Gamma = +1$) para no dividir por infinito.
+\end{itemize}
+
+\section{Procedencia de los datos}
+Cada dataset se guarda con un \textbf{origen obligatorio que nunca cambia}:
+\begin{center}
+\begin{tabular}{ll}\toprule
+\texttt{imported} & leído de un archivo Touchstone\\
+\texttt{simulated} & generado por un modelo (circuito, antena de hilo\ldots)\\
+\texttt{measured} & capturado de un VNA conectado\\
+\texttt{derived} & resultado de procesar otros (calibración, modo mixto), con referencia a sus fuentes\\ \bottomrule
+\end{tabular}
+\end{center}
+La interfaz y los informes muestran ese origen con colores distintos: nunca se confunde una simulación con una medida.
+
+\section{Touchstone}
+El importador lee archivos v1 (\texttt{.s1p}--\texttt{.s4p}) y v2: la línea de opciones (\texttt{\# GHz S MA R 50}), los formatos RI, MA y DB,
+la ordenación especial de los archivos de 2 puertos (en v1 se escribe $S_{21}$ antes que $S_{12}$), comentarios y ruido. Cada archivo
+se contrasta con el lector de scikit-rf y las diferencias se avisan antes de guardar.
+
+\section{Integración con VNA}
+Hay controladores para NanoVNA (puerto serie), LibreVNA (a través de su GUI por TCP) e instrumentos SCPI (Keysight, Rohde \& Schwarz,
+Copper Mountain, por VISA). Sin instrumento conectado la aplicación lo indica claramente y \textbf{nunca simula una conexión}.
+
+\section{Cómo se garantiza la precisión}
+La batería de pruebas (\texttt{backend/tests}, 166 pruebas) compara el motor con:
+\begin{itemize}
+\item resultados analíticos (cargas resistivas, abierto, corto, líneas de $\lambda/4$ y $\lambda/2$);
+\item ejemplos resueltos de Pozar (5.1, 5.2, 5.4) y Balanis (dipolo, monopolo);
+\item scikit-rf (conversiones, estabilidad, Touchstone, calibración, modo mixto, líneas con pérdidas).
+\end{itemize}
+El script de publicación no publica nada si una sola prueba falla.

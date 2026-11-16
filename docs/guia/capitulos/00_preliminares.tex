@@ -1,0 +1,137 @@
+\chapter*{Cómo usar esta guía}
+\addcontentsline{toc}{chapter}{Cómo usar esta guía}
+
+Esta guía es un repaso profundo, ordenado de lo más básico a lo más avanzado. Cada capítulo se apoya en los anteriores, así que
+conviene leerla en orden la primera vez. Después puede usarse como consulta.
+
+\begin{itemize}
+  \item La \textbf{Parte I} construye las herramientas matemáticas: números complejos, fasores, impedancia, potencia,
+        resonancia y decibelios.
+  \item La \textbf{Parte II} desarrolla la teoría de radiofrecuencia exactamente como la implementa el motor: líneas,
+        reflexión, carta de Smith, adaptación, parámetros S, estabilidad, modo mixto, dominio del tiempo, calibración, antenas y microstrip.
+  \item La \textbf{Parte III} explica cómo está construida la aplicación, cómo se usa cada módulo y cómo se mantiene y publica.
+\end{itemize}
+
+Cada ecuación importante va seguida de un bloque \emph{«donde:»} que explica qué significa cada símbolo y en qué unidades se mide.
+Los cuadros tienen un significado fijo:
+
+\begin{definicion}{qué es}Definiciones formales de los conceptos.\end{definicion}
+\begin{intuicion}[: qué significa]Explicación del concepto sin fórmulas: qué ocurre físicamente y por qué importa.\end{intuicion}
+\begin{ejemplo}{con números}Ejercicios resueltos paso a paso. Los valores los ha calculado el motor de la aplicación.\end{ejemplo}
+\begin{atencion}{errores frecuentes}Convenciones, trampas y confusiones habituales.\end{atencion}
+\begin{enlaapp}Dónde aparece el concepto en la aplicación y cómo usarlo.\end{enlaapp}
+
+% =====================================================================
+\chapter*{Nomenclatura}
+\addcontentsline{toc}{chapter}{Nomenclatura}
+
+\section*{Matemática general}
+\begin{longtable}{@{}>{\centering\arraybackslash}p{2.6cm}p{9.6cm}p{2.4cm}@{}}
+\toprule \textbf{Símbolo} & \textbf{Significado} & \textbf{Unidad}\\ \midrule\endhead
+$\jj$ & Unidad imaginaria, $\jj^2=-1$ (en ingeniería no se usa $i$ para no confundirla con la corriente) & --- \\
+$z = a + \jj b$ & Número complejo genérico: $a$ parte real, $b$ parte imaginaria & --- \\
+$\abs{z}$, $\varphi$ & Módulo (longitud) y argumento (ángulo) de un número complejo & ---, rad o $^\circ$ \\
+$\conj{z}$ & Conjugado: cambia el signo de la parte imaginaria & --- \\
+$\Re\{\cdot\}$, $\Im\{\cdot\}$ & Parte real y parte imaginaria & --- \\
+$\ee^{\jj\varphi}$ & Exponencial compleja (fórmula de Euler) & --- \\
+$\angle$ & «con ángulo»: $10\angle 30^\circ$ es un número de módulo 10 y ángulo $30^\circ$ & --- \\
+$\ln$, $\log_{10}$ & Logaritmo natural (base $\ee$) y decimal & --- \\
+$\mathcal{F}$, $\mathcal{F}^{-1}$ & Transformada de Fourier y su inversa & --- \\
+\bottomrule
+\end{longtable}
+
+\section*{Señales y circuitos}
+\begin{longtable}{@{}>{\centering\arraybackslash}p{2.6cm}p{9.6cm}p{2.4cm}@{}}
+\toprule \textbf{Símbolo} & \textbf{Significado} & \textbf{Unidad}\\ \midrule\endhead
+$t$ & Tiempo & \si{\second} \\
+$f$ & Frecuencia: número de oscilaciones por segundo & \si{\hertz} \\
+$\omega = 2\pi f$ & Frecuencia angular: radianes recorridos por segundo & \si{\radian\per\second} \\
+$T = 1/f$ & Periodo: duración de una oscilación & \si{\second} \\
+$v(t)$, $i(t)$ & Tensión y corriente instantáneas (valores reales en el tiempo) & \si{\volt}, \si{\ampere} \\
+$V$, $I$ & Fasores de tensión y corriente (números complejos) & \si{\volt}, \si{\ampere} \\
+$R$ & Resistencia: se opone a la corriente disipando energía & \si{\ohm} \\
+$L$ & Inductancia: almacena energía en el campo magnético & \si{\henry} \\
+$C$ & Capacidad: almacena energía en el campo eléctrico & \si{\farad} \\
+$Z = R + \jj X$ & Impedancia: oposición compleja al paso de corriente alterna & \si{\ohm} \\
+$X$ & Reactancia: parte imaginaria de $Z$ (positiva inductiva, negativa capacitiva) & \si{\ohm} \\
+$X_L$, $X_C$ & Reactancia de una bobina y de un condensador & \si{\ohm} \\
+$Y = G + \jj B$ & Admitancia, inversa de la impedancia & \si{\siemens} \\
+$G$, $B$ & Conductancia y susceptancia & \si{\siemens} \\
+$S = P + \jj Q$ & Potencia compleja & \si{\volt\ampere} \\
+$P$ & Potencia activa (la que realmente se consume o transmite) & \si{\watt} \\
+$Q$ & Potencia reactiva (energía que va y vuelve) — no confundir con el factor de calidad & var \\
+$f_0$ & Frecuencia de resonancia & \si{\hertz} \\
+$Q$ (factor) & Factor de calidad: relación entre energía almacenada y disipada por ciclo & --- \\
+$BW$ & Ancho de banda & \si{\hertz} \\
+\bottomrule
+\end{longtable}
+
+\section*{Líneas de transmisión y ondas}
+\begin{longtable}{@{}>{\centering\arraybackslash}p{2.6cm}p{9.6cm}p{2.4cm}@{}}
+\toprule \textbf{Símbolo} & \textbf{Significado} & \textbf{Unidad}\\ \midrule\endhead
+$c$ & Velocidad de la luz en el vacío, $\num{299792458}$ & \si{\metre\per\second} \\
+$\lambda$, $\lambda_0$ & Longitud de onda en la línea y en el vacío & \si{\metre} \\
+$v_p$ & Velocidad de fase de la onda en la línea & \si{\metre\per\second} \\
+$v_f = v_p/c$ & Factor de velocidad & --- \\
+$\varepsilon_r$, $\varepsilon_{\text{eff}}$ & Permitividad relativa del dieléctrico y efectiva (microstrip) & --- \\
+$R', L', G', C'$ & Parámetros distribuidos: resistencia, inductancia, conductancia y capacidad \emph{por metro} & \si{\ohm\per\metre}, \si{\henry\per\metre}, \si{\siemens\per\metre}, \si{\farad\per\metre} \\
+$Z_0$ & Impedancia característica de la línea (o impedancia de referencia) & \si{\ohm} \\
+$\gamma = \alpha + \jj\beta$ & Constante de propagación & \si{\per\metre} \\
+$\alpha$ & Constante de atenuación & \si{\neper\per\metre} \\
+$\beta = 2\pi/\lambda$ & Constante de fase (número de onda) & \si{\radian\per\metre} \\
+$\ell$ & Longitud física de la línea & \si{\metre} \\
+$d$ & Distancia medida desde la carga hacia el generador & \si{\metre} \\
+$\theta = \beta\ell$ & Longitud eléctrica & \si{\radian} o $^\circ$ \\
+$V^+$, $V^-$ & Amplitudes de la onda incidente y de la reflejada & \si{\volt} \\
+$Z_L$, $Z_{in}$ & Impedancia de carga y de entrada & \si{\ohm} \\
+$\delta_s$ & Profundidad de penetración (efecto pelicular) & \si{\metre} \\
+$R_s$ & Resistencia superficial del conductor & \si{\ohm} \\
+\bottomrule
+\end{longtable}
+
+\section*{Reflexión, adaptación y redes}
+\begin{longtable}{@{}>{\centering\arraybackslash}p{2.6cm}p{9.6cm}p{2.4cm}@{}}
+\toprule \textbf{Símbolo} & \textbf{Significado} & \textbf{Unidad}\\ \midrule\endhead
+$\Gamma$ & Coeficiente de reflexión (complejo) & --- \\
+$\Gamma_L$, $\Gamma_{in}$ & Coeficiente de reflexión en la carga y en la entrada & --- \\
+$z = Z/Z_0 = r + \jj x$ & Impedancia normalizada (sin unidades) & --- \\
+$y = 1/z = g + \jj b$ & Admitancia normalizada & --- \\
+$\mathrm{VSWR}$ (ROE) & Relación de onda estacionaria & --- \\
+$RL$ & Return Loss, pérdida de retorno (positiva) & \si{\decibel} \\
+$ML$ & Mismatch loss, pérdida por desadaptación & \si{\decibel} \\
+$Z_s$ & Impedancia de la fuente & \si{\ohm} \\
+$\Gamma_p$ & Coeficiente de reflexión de onda de potencia (para fuentes complejas) & --- \\
+$Q_L$ & Factor de calidad de la carga, $\abs{X_L}/R_L$ & --- \\
+$\Gamma_m$ & Máxima reflexión admitida en la banda de adaptación & --- \\
+$G_T$ & Ganancia de transductor & --- o \si{\decibel} \\
+$A, B, C, D$ & Parámetros de la matriz de transmisión (cascada) & mixtas \\
+\bottomrule
+\end{longtable}
+
+\section*{Parámetros S, estabilidad y antenas}
+\begin{longtable}{@{}>{\centering\arraybackslash}p{2.6cm}p{9.6cm}p{2.4cm}@{}}
+\toprule \textbf{Símbolo} & \textbf{Significado} & \textbf{Unidad}\\ \midrule\endhead
+$a_i$, $b_i$ & Ondas de potencia incidente y reflejada en el puerto $i$ & $\sqrt{\mathrm{W}}$ \\
+$S_{ij}$ & Parámetro S: respuesta en el puerto $i$ a una excitación en el puerto $j$ & --- \\
+$\Delta$ & Determinante de la matriz S de dos puertos & --- \\
+$K$, $\mu$ & Factores de estabilidad de Rollett y de Edwards–Sinsky & --- \\
+$\tau_g$ & Retardo de grupo & \si{\second} \\
+$S_{dd}$, $S_{cc}$, $S_{dc}$ & Parámetros en modo mixto: diferencial, común y conversión & --- \\
+$e_{00}$, $e_{11}$, $e_{10}e_{01}$ & Términos de error de la calibración de un puerto & --- \\
+$\eta_0$ & Impedancia del espacio libre, $\approx \SI{376.73}{\ohm}$ & \si{\ohm} \\
+$k = 2\pi/\lambda$ & Número de onda en el espacio libre & \si{\radian\per\metre} \\
+$F(\theta)$ & Diagrama de campo (dependencia angular) & --- \\
+$R_r$, $R_L$ & Resistencia de radiación y de pérdidas de la antena & \si{\ohm} \\
+$D$, $G$, $e$ & Directividad, ganancia y eficiencia de radiación & ---, \si{\dBi} \\
+$\sigma$, $\mu_0$ & Conductividad del metal y permeabilidad del vacío ($4\pi\times10^{-7}$) & \si{\siemens\per\metre}, \si{\henry\per\metre} \\
+\bottomrule
+\end{longtable}
+
+\section*{Prefijos del Sistema Internacional}
+La aplicación acepta estos prefijos al escribir valores: \texttt{10n} = \SI{10}{\nano\henry} si es una bobina, \texttt{4.7p} = \SI{4.7}{\pico\farad}, \texttt{433MHz}, \texttt{2.4G}.
+\begin{center}
+\begin{tabular}{cccccccccc}\toprule
+f & p & n & µ (u) & m & --- & k & M & G & T\\\midrule
+$10^{-15}$ & $10^{-12}$ & $10^{-9}$ & $10^{-6}$ & $10^{-3}$ & $1$ & $10^{3}$ & $10^{6}$ & $10^{9}$ & $10^{12}$\\\bottomrule
+\end{tabular}
+\end{center}

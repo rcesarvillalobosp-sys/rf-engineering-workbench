@@ -1,0 +1,125 @@
+\chapter{Dominio del tiempo y calibración}
+
+\section{De la frecuencia al tiempo}
+
+Un VNA mide $S_{11}(f)$ en muchas frecuencias. La transformada de Fourier inversa convierte esa respuesta en una respuesta temporal:
+qué «eco» vuelve y cuándo. Es la reflectometría en el dominio del tiempo (TDR) sintética: permite localizar discontinuidades
+(conectores, curvas de un cable, cambios de pista) sin generar ningún pulso real.
+
+\begin{definicion}{transformada de Fourier discreta inversa}
+Con $N$ muestras de frecuencia equiespaciadas $f_n = n\,\Delta f$:
+\begin{equation}
+  h(t_k) = \frac{1}{N}\sum_{n=0}^{N-1} S_{11}(f_n)\,W_n\,\ee^{\jj 2\pi f_n t_k}, \qquad t_k = \frac{k}{N\Delta f}.
+\end{equation}
+\begin{donde}
+\sym{h(t)}{respuesta al impulso: reflexión que vuelve en el instante $t$ (ida y vuelta)}{---}
+\sym{\Delta f}{paso de frecuencia}{\si{\hertz}}
+\sym{W_n}{ventana (Kaiser, Hann\ldots) que suaviza el corte del espectro}{---}
+\sym{N}{número de puntos (tras rellenar con ceros para interpolar en el tiempo)}{---}
+\end{donde}
+\end{definicion}
+
+\subsection{Resolución y alcance}
+Dos números gobiernan lo que se puede ver:
+\begin{equation}
+  t_{\max} = \frac{1}{\Delta f}, \qquad \Delta t \approx \frac{1}{2 f_{\max}} \;(\text{low-pass}), \qquad
+  d = \frac{v_f\,c\,t}{2}.
+\end{equation}
+\begin{donde}
+\sym{t_{\max}}{tiempo máximo sin solapamiento (alias): los ecos más tardíos «dan la vuelta»}{\si{\second}}
+\sym{\Delta t}{resolución temporal aproximada (anchura del pulso)}{\si{\second}}
+\sym{f_{\max}}{frecuencia máxima medida}{\si{\hertz}}
+\sym{d}{distancia física a la discontinuidad; el factor $\tfrac12$ es por el viaje de ida y vuelta}{\si{\metre}}
+\end{donde}
+\begin{intuicion}[: más ancho de banda, más detalle]
+Medir hasta frecuencias más altas da pulsos más estrechos y permite separar discontinuidades cercanas. Medir con pasos más finos permite
+ver más lejos. Un barrido de \SI{1}{\mega\hertz} a \SI{3}{\giga\hertz} con 3000 puntos ve hasta $t_{\max} = \SI{1}{\micro\second}$ con resolución
+de unos \SI{170}{\pico\second} (unos \SI{1.7}{\centi\metre} de cable con $v_f=0.66$).
+\end{intuicion}
+
+\subsection{Modo low-pass y respuesta al escalón}
+Si el barrido empieza cerca de DC y la rejilla es armónica ($f_n = n\Delta f$), se puede reconstruir una respuesta real: se estima el valor
+en DC extrapolando los primeros puntos, se construye el espectro hermítico y se integra el impulso para obtener la \textbf{respuesta al escalón}
+$\rho(t)$, que se traduce directamente en impedancia:
+\begin{equation}
+  Z(t) = Z_0\,\frac{1 + \rho(t)}{1 - \rho(t)}.
+\end{equation}
+\begin{donde}
+\sym{\rho(t)}{coeficiente de reflexión acumulado (respuesta al escalón) en el instante $t$}{---}
+\sym{Z(t)}{impedancia «vista» a la distancia correspondiente a $t$}{\si{\ohm}}
+\end{donde}
+Lectura: una subida de $Z$ es una inductancia en serie o un tramo de alta impedancia; una bajada es una capacidad en paralelo o un tramo de baja impedancia.
+
+\begin{figure}[h]\centering
+\includegraphics[width=0.9\linewidth]{generado/tdr.pdf}
+\caption{TDR low-pass de un filtro L--C--L terminado en \SI{50}{\ohm}: la bobina de entrada aparece como alta impedancia, el condensador
+como baja, y la respuesta se estabiliza en \SI{50}{\ohm}.}
+\end{figure}
+
+\subsection{Modo band-pass}
+Si los datos no empiezan cerca de DC sólo se puede obtener la \emph{envolvente} del impulso (su módulo), sin signo: indica \emph{dónde} hay
+reflexiones pero no si son inductivas o capacitivas.
+
+\begin{atencion}{ventanas y lóbulos}
+Cortar el espectro bruscamente en $f_{\max}$ produce lóbulos laterales (efecto Gibbs) que parecen discontinuidades falsas. La ventana los
+reduce a costa de ensanchar el pulso. La aplicación usa Kaiser con $\beta = 6$ por defecto: buen compromiso entre las dos cosas.
+\end{atencion}
+
+\section{Calibración del VNA}
+
+\subsection{Por qué calibrar}
+Un VNA real no mide la reflexión del dispositivo: mide la del dispositivo más la de los cables, conectores, acopladores y la
+electrónica interna. Esos errores sistemáticos son estables y se pueden modelar y eliminar.
+
+\subsection{Modelo de error de un puerto}
+Entre el VNA ideal y el dispositivo se interpone un adaptador de dos puertos desconocido (el «adaptador de error»):
+\begin{equation}
+  \Gamma_m = e_{00} + \frac{e_{10}e_{01}\,\Gamma}{1 - e_{11}\Gamma}.
+\end{equation}
+\begin{donde}
+\sym{\Gamma_m}{reflexión medida (cruda)}{---}
+\sym{\Gamma}{reflexión real del dispositivo}{---}
+\sym{e_{00}}{directividad: señal que llega al receptor sin pasar por el dispositivo}{---}
+\sym{e_{11}}{adaptación de la fuente: reflexión del propio puerto vista desde el dispositivo}{---}
+\sym{e_{10}e_{01}}{seguimiento de reflexión (\emph{tracking}): ganancia y fase del camino de ida y vuelta}{---}
+\end{donde}
+
+\subsection{Calibración SOL (Short, Open, Load)}
+Hay tres incógnitas complejas por frecuencia, así que bastan tres estándares conocidos. Multiplicando el modelo por $(1 - e_{11}\Gamma)$
+queda una ecuación \emph{lineal}:
+\begin{equation}
+  e_{00} + \Gamma\,\Gamma_m\,e_{11} - \Gamma\,\Delta_e = \Gamma_m, \qquad \Delta_e = e_{00}e_{11} - e_{10}e_{01}.
+\end{equation}
+Escribiéndola para los tres estándares (con sus $\Gamma$ conocidos, idealmente $+1$, $-1$ y $0$) se obtiene un sistema $3\times3$ por frecuencia:
+\begin{equation}
+  \begin{pmatrix} 1 & \Gamma_1\Gamma_{m1} & -\Gamma_1 \\ 1 & \Gamma_2\Gamma_{m2} & -\Gamma_2 \\ 1 & \Gamma_3\Gamma_{m3} & -\Gamma_3 \end{pmatrix}
+  \begin{pmatrix} e_{00} \\ e_{11} \\ \Delta_e \end{pmatrix} = \begin{pmatrix} \Gamma_{m1} \\ \Gamma_{m2} \\ \Gamma_{m3}\end{pmatrix}.
+\end{equation}
+Resuelto, la corrección de cualquier medida es la inversión del modelo:
+\begin{equation}
+  \Gamma = \frac{\Gamma_m - e_{00}}{e_{10}e_{01} + e_{11}(\Gamma_m - e_{00})}.
+\end{equation}
+Si dos estándares son iguales (archivos intercambiados, estándar mal conectado) la matriz es singular: el motor lo detecta y \textbf{rechaza} la
+calibración en lugar de dar un resultado falso.
+
+\subsection{Modelos de kit de calibración}
+Los estándares reales no son ideales. Se describen con el formato que usan los VNA comerciales:
+\begin{itemize}
+\item \textbf{Open}: capacidad parásita dependiente de la frecuencia, $C(f) = C_0 + C_1 f + C_2 f^2 + C_3 f^3$.
+\item \textbf{Short}: inductancia parásita $L(f) = L_0 + L_1 f + L_2 f^2 + L_3 f^3$.
+\item \textbf{Load}: impedancia fija (idealmente $Z_0$).
+\item Cada uno tras una \textbf{línea de offset} con impedancia $Z_{0,\text{off}}$, retardo $\tau$ y pérdidas (en G$\Omega$/s), con atenuación
+proporcional a $\sqrt f$ por efecto pelicular.
+\end{itemize}
+Con estos modelos el motor calcula el $\Gamma$ verdadero de cada estándar en cada frecuencia y lo usa en el sistema anterior.
+
+\subsection{SOLT de dos puertos}
+Para medir $S_{21}$ hace falta un modelo de 12 términos (6 por dirección): además de los tres de cada puerto, la adaptación de carga,
+el seguimiento de transmisión y el aislamiento. Se añade el estándar \textbf{Thru} (los dos puertos unidos). La aplicación resuelve SOLT con
+scikit-rf, usando como ideales los estándares definidos por el modelo de kit.
+
+\begin{enlaapp}
+La pestaña TDR del módulo \app{S-Parameters} hace TDR low-pass y band-pass con ventana elegible y conversión del tiempo a distancia según $v_f$. La
+calibración (SOL de un puerto y SOLT de dos) está en el módulo \app{VNA Integration}: se pueden usar estándares medidos en el momento o importados de archivos,
+y el resultado se guarda como dataset de origen \emph{derivado}, enlazado a las medidas crudas.
+\end{enlaapp}

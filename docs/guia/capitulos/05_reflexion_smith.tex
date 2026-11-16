@@ -1,0 +1,174 @@
+\chapter{Reflexión y carta de Smith}\label{cap:smith}
+
+\section{El coeficiente de reflexión}
+
+Cuando una onda llega a una carga $Z_L$ distinta de $Z_0$, la carga impone su propia relación $V/I$. La única forma de cumplirla
+es que aparezca una onda reflejada. En la carga ($d = 0$): $V = V^+ + V^-$ e $I = (V^+ - V^-)/Z_0$. Imponiendo $V/I = Z_L$:
+\begin{equation}
+  Z_L = Z_0\,\frac{V^+ + V^-}{V^+ - V^-} \quad\Longrightarrow\quad
+  \boxed{\;\Gamma_L = \frac{V^-}{V^+} = \frac{Z_L - Z_0}{Z_L + Z_0}\;}
+\end{equation}
+\begin{donde}
+\sym{\Gamma_L}{coeficiente de reflexión en la carga (complejo): qué fracción de la onda vuelve y con qué fase}{---}
+\sym{Z_L}{impedancia de carga}{\si{\ohm}}
+\sym{Z_0}{impedancia de referencia (la de la línea o del sistema, casi siempre \SI{50}{\ohm})}{\si{\ohm}}
+\end{donde}
+Y la relación inversa, que permite pasar de una medida de $\Gamma$ a una impedancia:
+\begin{equation}
+  Z_L = Z_0\,\frac{1 + \Gamma_L}{1 - \Gamma_L}.
+\end{equation}
+
+\subsection{Valores de referencia}
+\begin{center}
+\begin{tabular}{lccc}\toprule
+Carga & $Z_L$ & $\Gamma_L$ & Interpretación \\ \midrule
+Adaptada & $Z_0$ & $0$ & no hay onda reflejada \\
+Cortocircuito & $0$ & $-1 = 1\angle 180^\circ$ & todo vuelve, con la tensión invertida \\
+Circuito abierto & $\infty$ & $+1 = 1\angle 0^\circ$ & todo vuelve, con la misma tensión \\
+Reactancia pura & $\jj X$ & $\abs{\Gamma} = 1$ & todo vuelve, con una fase intermedia \\
+Carga pasiva cualquiera & $R \ge 0$ & $\abs{\Gamma} \le 1$ & parte se absorbe, parte vuelve \\ \bottomrule
+\end{tabular}
+\end{center}
+\begin{intuicion}[: por qué $\abs{\Gamma} \le 1$ en una carga pasiva]
+Una carga pasiva no puede devolver más energía de la que recibe. La potencia reflejada es $\abs{\Gamma}^2$ veces la incidente, así que
+$\abs{\Gamma}\le 1$ siempre que $R\ge0$. Un $\abs{\Gamma} > 1$ indica una resistencia negativa: un dispositivo activo que puede oscilar
+(capítulo~\ref{cap:sparams}, estabilidad).
+\end{intuicion}
+
+\subsection{Reflexión a lo largo de la línea}
+A una distancia $d$ de la carga, la onda incidente se ha adelantado $\beta d$ y la reflejada ha tenido que recorrer $d$ más; el cociente gira
+\emph{dos veces}:
+\begin{equation}
+  \Gamma(d) = \Gamma_L\,\ee^{-2\gamma d} \;\xrightarrow{\text{sin pérdidas}}\; \Gamma_L\,\ee^{-\jj 2\beta d}.
+\end{equation}
+\begin{donde}
+\sym{\Gamma(d)}{coeficiente de reflexión visto a la distancia $d$ de la carga}{---}
+\sym{2\beta d}{giro de fase de ida y vuelta}{rad}
+\end{donde}
+En una línea sin pérdidas, $\abs{\Gamma}$ es constante y sólo gira su fase, en sentido horario, una vuelta completa cada $\lambda/2$.
+Esta es la base geométrica de la carta de Smith.
+
+\section{\texorpdfstring{Magnitudes derivadas de $\abs{\Gamma}$}{Magnitudes derivadas de |Γ|}}
+
+\begin{definicion}{VSWR, pérdida de retorno y pérdida por desadaptación}
+\begin{align}
+  \mathrm{VSWR} &= \frac{1+\abs\Gamma}{1-\abs\Gamma}, \qquad \abs\Gamma = \frac{\mathrm{VSWR}-1}{\mathrm{VSWR}+1}\\
+  RL &= -20\log_{10}\abs\Gamma \quad [\si{\decibel}]\\
+  ML &= -10\log_{10}\left(1 - \abs\Gamma^2\right) \quad [\si{\decibel}]
+\end{align}
+\begin{donde}
+\sym{\mathrm{VSWR}}{relación de onda estacionaria (ROE): de 1 (perfecta) a $\infty$ (reflexión total)}{---}
+\sym{RL}{return loss: cuántos dB por debajo de la incidente está la onda reflejada. \textbf{Cuanto mayor, mejor}}{\si{\decibel}}
+\sym{ML}{mismatch loss: potencia que \emph{no} llega a la carga por culpa de la reflexión}{\si{\decibel}}
+\sym{\abs\Gamma^2}{fracción de potencia reflejada}{---}
+\sym{1-\abs\Gamma^2}{fracción de potencia entregada a la carga}{---}
+\end{donde}
+\end{definicion}
+
+\begin{atencion}{el signo de la return loss}
+La return loss es positiva: $RL = \SI{20}{\decibel}$ significa $\abs\Gamma = 0.1$. Lo que se representa en un VNA es $\abs{S_{11}}$ en dB,
+que es \emph{negativo}: $\abs{S_{11}}_{\si{\decibel}} = -RL$. Decir «una return loss de \SI{-20}{\decibel}» es técnicamente incorrecto,
+aunque muy común.
+\end{atencion}
+
+\begin{center}
+\small
+\begin{tabular}{cccccc}\toprule
+VSWR & $\abs\Gamma$ & $RL$ (dB) & Reflejada (\%) & Entregada (\%) & $ML$ (dB)\\ \midrule
+\tabla{generado/tabla_vswr.tex}
+\bottomrule
+\end{tabular}
+\end{center}
+Observe que un VSWR de 2 (que parece «malo») sólo pierde \SI{0.51}{\decibel}: la ROE es sobre todo un problema de potencia reflejada hacia
+el transmisor y de tensiones elevadas en la línea, más que de pérdida de señal.
+
+\begin{ejemplo}{$Z_L = 80 + \jj 30\,\si{\ohm}$ en un sistema de \SI{50}{\ohm}}
+\begin{align*}
+  z &= \frac{Z_L}{Z_0} = \GejZn\\
+  \Gamma &= \frac{Z_L - Z_0}{Z_L + Z_0} = \frac{30 + \jj30}{130 + \jj30} = \GejRect = \GejPol\\
+  \mathrm{VSWR} &= \frac{1 + \GejMag}{1 - \GejMag} = \GejVswr\\
+  RL &= \GejRl~\si{\decibel}, \qquad ML = \GejMl~\si{\decibel}, \qquad \text{potencia reflejada} = \GejRefl~\%
+\end{align*}
+\end{ejemplo}
+
+\subsection{Fuentes complejas: ondas de potencia}
+Si la fuente no es una resistencia pura de valor $Z_0$, la reflexión que importa para la potencia entregada es la de \emph{onda de potencia}
+(Kurokawa):
+\begin{equation}
+  \Gamma_p = \frac{Z_L - \conj{Z_s}}{Z_L + Z_s} .
+\end{equation}
+\begin{donde}
+\sym{\Gamma_p}{coeficiente de reflexión de onda de potencia}{---}
+\sym{Z_s}{impedancia de la fuente}{\si{\ohm}}
+\end{donde}
+Es cero exactamente cuando $Z_L = \conj{Z_s}$ (máxima transferencia de potencia) y $1 - \abs{\Gamma_p}^2$ es la fracción de la potencia
+\emph{disponible} que llega a la carga. Cuando $Z_s = Z_0$ es real, coincide con el $\Gamma$ habitual.
+
+\section{La carta de Smith}
+
+\subsection{La idea}
+La carta de Smith es el plano complejo de $\Gamma$ (el disco $\abs\Gamma\le1$) sobre el que se dibujan las curvas de resistencia y
+reactancia normalizadas constantes. Así, un mismo punto se lee a la vez como $\Gamma$ (posición) y como $Z$ (rejilla).
+
+Con la impedancia normalizada $z = Z/Z_0 = r + \jj x$, la relación es una \emph{transformación de Möbius}:
+\begin{equation}
+  \Gamma = \frac{z - 1}{z + 1}, \qquad z = \frac{1 + \Gamma}{1 - \Gamma}.
+\end{equation}
+\begin{donde}
+\sym{z = r + \jj x}{impedancia normalizada (adimensional)}{---}
+\sym{r}{resistencia normalizada $R/Z_0$}{---}
+\sym{x}{reactancia normalizada $X/Z_0$}{---}
+\end{donde}
+
+\subsection{Derivación de los círculos}
+Escribimos $\Gamma = u + \jj v$ y separamos parte real e imaginaria de $z = (1+\Gamma)/(1-\Gamma)$, multiplicando por el conjugado del denominador:
+\begin{equation}
+  r = \frac{1 - u^2 - v^2}{(1-u)^2 + v^2}, \qquad x = \frac{2v}{(1-u)^2 + v^2}.
+\end{equation}
+Reordenando cada una como ecuación de una circunferencia $(u - u_c)^2 + (v - v_c)^2 = \rho^2$:
+\begin{align}
+  \text{$r$ constante:}\quad & \left(u - \frac{r}{1+r}\right)^2 + v^2 = \left(\frac{1}{1+r}\right)^2 \\
+  \text{$x$ constante:}\quad & (u - 1)^2 + \left(v - \frac1x\right)^2 = \left(\frac1x\right)^2
+\end{align}
+\begin{donde}
+\sym{u, v}{partes real e imaginaria de $\Gamma$ (coordenadas del punto en la carta)}{---}
+\sym{\frac{r}{1+r},\ \frac1{1+r}}{centro sobre el eje real y radio de cada círculo de resistencia}{---}
+\sym{(1, \frac1x),\ \frac1{\abs x}}{centro y radio de cada arco de reactancia}{---}
+\end{donde}
+Todos los círculos de $r$ constante pasan por el punto $\Gamma = 1$ (circuito abierto) y todos los de $x$ constante también: ese punto
+es la imagen de $z = \infty$.
+
+\begin{figure}[h]\centering
+\includegraphics[width=0.62\linewidth]{generado/smith_regiones.pdf}
+\caption{Regiones de la carta de Smith: mitad superior inductiva ($x>0$), mitad inferior capacitiva ($x<0$), eje horizontal resistivo puro,
+centro adaptado ($z = 1$), extremo izquierdo cortocircuito, extremo derecho circuito abierto.}
+\end{figure}
+
+\subsection{Cómo leer la carta}
+\begin{itemize}
+\item \textbf{Distancia al centro} $=\abs\Gamma$: los círculos concéntricos con el centro son de VSWR constante.
+\item \textbf{Ángulo} $=$ fase de $\Gamma$, medida desde el eje real positivo.
+\item \textbf{Moverse por una línea sin pérdidas} hacia el generador es girar en sentido \emph{horario} sobre un círculo de VSWR constante;
+una vuelta completa son $\lambda/2$. Con pérdidas, el punto describe una espiral hacia el centro.
+\item \textbf{Añadir una reactancia en serie} mueve el punto sobre su círculo de $r$ constante (hacia arriba si es una bobina, hacia abajo si es un condensador).
+\item \textbf{Añadir una susceptancia en paralelo} mueve el punto sobre un círculo de $g$ constante de la carta de admitancias.
+\end{itemize}
+
+\subsection{La carta de admitancias}
+Como $y = 1/z$, se cumple
+\begin{equation}
+  \Gamma_y = \frac{y - 1}{y + 1} = \frac{1/z - 1}{1/z + 1} = -\,\frac{z-1}{z+1} = -\Gamma .
+\end{equation}
+Es decir, \textbf{la admitancia de un punto se lee en el punto diametralmente opuesto} (girado $180^\circ$). La carta de admitancias es la
+de impedancias girada media vuelta; superponer las dos (carta «ZY») permite trabajar con elementos en serie y en paralelo a la vez.
+
+\begin{figure}[h]\centering
+\includegraphics[width=0.62\linewidth]{generado/smith_ejemplo.pdf}
+\caption{El ejemplo $Z_L = 80 + \jj30\,\si{\ohm}$ en la carta: la flecha es el vector $\Gamma$ y el círculo discontinuo reúne todos los puntos con el mismo VSWR (los que se recorren al añadir línea sin pérdidas).}
+\end{figure}
+
+\begin{enlaapp}
+La \app{Smith Chart} es SVG propio: dibuja las rejillas Z, Y o ZY, círculos de VSWR, marcadores con lectura simultánea de $z$, $y$, $\Gamma$,
+VSWR y RL, trazas de medidas o archivos Touchstone y trayectorias de redes de adaptación. Se exporta como SVG o PNG de 4000 píxeles.
+En el \app{Circuit Builder} cada elemento que se añade a la escalera dibuja su arco (círculo $r$ constante si es serie, círculo $g$ constante si es paralelo).
+\end{enlaapp}

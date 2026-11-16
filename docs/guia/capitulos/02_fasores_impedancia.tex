@@ -1,0 +1,151 @@
+\chapter{Señales senoidales, fasores e impedancia}
+
+\section{La señal senoidal}
+
+En régimen permanente, todas las tensiones y corrientes de un circuito lineal excitado por una fuente senoidal son senoides
+de la \emph{misma frecuencia}; sólo cambian su amplitud y su fase. Una tensión senoidal se escribe:
+\begin{equation}
+  v(t) = V_p \cos(\omega t + \varphi), \qquad \omega = 2\pi f = \frac{2\pi}{T}.
+\end{equation}
+\begin{donde}
+\sym{v(t)}{valor instantáneo de la tensión en el instante $t$}{\si{\volt}}
+\sym{V_p}{amplitud de pico (valor máximo)}{\si{\volt}}
+\sym{\omega}{frecuencia angular}{\si{\radian\per\second}}
+\sym{f}{frecuencia}{\si{\hertz}}
+\sym{T}{periodo}{\si{\second}}
+\sym{\varphi}{fase inicial: desplazamiento de la onda respecto a un coseno que empieza en su máximo}{rad}
+\end{donde}
+
+\begin{definicion}{valor eficaz (RMS)}
+El valor eficaz es el valor de una tensión continua que disiparía la misma potencia media en una resistencia.
+Para una senoide:
+\begin{equation}
+  V_{\text{ef}} = \frac{V_p}{\sqrt{2}} \approx 0.707\,V_p .
+\end{equation}
+Las potencias se calculan con valores eficaces. La aplicación usa valores eficaces en el cálculo de potencias del \app{Impedance Analyzer}.
+\end{definicion}
+
+\section{El fasor}
+
+\begin{definicion}{fasor}
+El fasor de $v(t)$ es el número complejo que guarda su amplitud y su fase:
+\begin{equation}
+  V = V_p\,\ee^{\jj\varphi} \qquad\text{de modo que}\qquad v(t) = \Re\{V\,\ee^{\jj\omega t}\} .
+\end{equation}
+\begin{donde}
+\sym{V}{fasor (número complejo): módulo $=$ amplitud, argumento $=$ fase}{\si{\volt}}
+\sym{\ee^{\jj\omega t}}{factor de giro: una flecha de módulo 1 que gira a $\omega$ radianes por segundo}{---}
+\sym{\Re\{\cdot\}}{parte real: la proyección de la flecha giratoria sobre el eje horizontal}{---}
+\end{donde}
+\end{definicion}
+
+\begin{intuicion}[: la flecha que gira]
+Imagine una flecha de longitud $V_p$ que gira en el plano complejo a velocidad constante $\omega$. Su sombra sobre el eje horizontal
+sube y baja describiendo exactamente $V_p\cos(\omega t + \varphi)$. Como todas las señales del circuito giran a la misma
+velocidad, podemos «congelar» el giro y trabajar sólo con la posición inicial de cada flecha: eso es el fasor.
+\end{intuicion}
+
+\subsection{\texorpdfstring{Por qué derivar es multiplicar por $\jj\omega$}{Por qué derivar es multiplicar por jω}}
+Derivemos $\Re\{V\ee^{\jj\omega t}\}$ respecto al tiempo. Como $V$ es constante:
+\begin{equation}
+  \frac{\dd}{\dd t}\Re\{V\ee^{\jj\omega t}\} = \Re\left\{V\,\frac{\dd}{\dd t}\ee^{\jj\omega t}\right\} = \Re\{(\jj\omega V)\,\ee^{\jj\omega t}\}.
+\end{equation}
+Es decir: \textbf{el fasor de la derivada es $\jj\omega$ por el fasor}. Las ecuaciones diferenciales de los circuitos
+se convierten así en ecuaciones algebraicas con números complejos, que son mucho más fáciles de resolver.
+
+\begin{atencion}{la convención de signo $\ee^{+\jj\omega t}$}
+La aplicación (y la ingeniería eléctrica en general) usa $\ee^{+\jj\omega t}$. Algunos libros de física usan $\ee^{-\jj\omega t}$ y
+escriben $-\jj$ donde nosotros escribimos $+\jj$. Con nuestra convención \textbf{la reactancia de una bobina es positiva y la de un
+condensador negativa}. Al comparar resultados con otro libro o programa, compruebe siempre la convención.
+\end{atencion}
+
+\section{Impedancia de los elementos básicos}
+
+\begin{definicion}{impedancia}
+La impedancia es el cociente entre el fasor de tensión y el fasor de corriente de un elemento (ley de Ohm generalizada):
+\begin{equation}
+  Z = \frac{V}{I} = R + \jj X .
+\end{equation}
+\begin{donde}
+\sym{Z}{impedancia (compleja)}{\si{\ohm}}
+\sym{R = \Re\{Z\}}{resistencia: parte que \emph{disipa} energía (la convierte en calor o radiación)}{\si{\ohm}}
+\sym{X = \Im\{Z\}}{reactancia: parte que \emph{almacena} energía y la devuelve cada ciclo}{\si{\ohm}}
+\end{donde}
+\end{definicion}
+
+\paragraph{Resistencia.} La ley de Ohm $v = R\,i$ no tiene derivadas, así que $V = R\,I$ y
+\begin{equation} Z_R = R . \end{equation}
+
+\paragraph{Bobina.} La tensión en una bobina es proporcional a la variación de su corriente, $v = L\,\dd i/\dd t$. En fasores,
+derivar es multiplicar por $\jj\omega$:
+\begin{equation}
+  V = L\,(\jj\omega I) \quad\Rightarrow\quad Z_L = \jj\omega L, \qquad X_L = \omega L > 0 .
+\end{equation}
+\begin{donde}
+\sym{L}{inductancia}{\si{\henry}}
+\sym{X_L}{reactancia inductiva: crece linealmente con la frecuencia}{\si{\ohm}}
+\end{donde}
+
+\paragraph{Condensador.} La corriente en un condensador es proporcional a la variación de su tensión, $i = C\,\dd v/\dd t$:
+\begin{equation}
+  I = C\,(\jj\omega V) \quad\Rightarrow\quad Z_C = \frac{1}{\jj\omega C} = -\,\frac{\jj}{\omega C}, \qquad X_C = -\frac{1}{\omega C} < 0 .
+\end{equation}
+\begin{donde}
+\sym{C}{capacidad}{\si{\farad}}
+\sym{X_C}{reactancia capacitiva: negativa, y su valor absoluto disminuye con la frecuencia}{\si{\ohm}}
+\end{donde}
+Para pasar de $1/\jj$ a $-\jj$ basta multiplicar arriba y abajo por $\jj$: $\frac{1}{\jj} = \frac{\jj}{\jj^2} = -\jj$.
+
+\begin{intuicion}[: qué significan los signos]
+En una bobina la corriente va \emph{retrasada} $90^\circ$ respecto a la tensión (la bobina «se resiste» a los cambios de corriente);
+en un condensador va \emph{adelantada} $90^\circ$. El signo de la reactancia indica cuál de los dos comportamientos domina.
+A frecuencias altas la bobina se parece a un circuito abierto ($X_L\to\infty$) y el condensador a un cortocircuito ($X_C\to 0$);
+a frecuencias bajas, al revés. Este simple hecho explica casi todos los filtros y redes de adaptación.
+\end{intuicion}
+
+\section{Admitancia}
+
+\begin{definicion}{admitancia}
+\begin{equation}
+  Y = \frac{1}{Z} = G + \jj B = \frac{R}{R^2+X^2} - \jj\,\frac{X}{R^2+X^2}.
+\end{equation}
+\begin{donde}
+\sym{Y}{admitancia: facilidad con que circula la corriente}{\si{\siemens}}
+\sym{G = \Re\{Y\}}{conductancia}{\si{\siemens}}
+\sym{B = \Im\{Y\}}{susceptancia: $B>0$ capacitiva, $B<0$ inductiva (signos opuestos a la reactancia)}{\si{\siemens}}
+\end{donde}
+\end{definicion}
+\begin{atencion}{$G$ no es $1/R$}
+Salvo que $X = 0$, la conductancia \emph{no} es el inverso de la resistencia: $G = R/(R^2+X^2)$. Es un error muy frecuente.
+\end{atencion}
+
+\section{Asociación de impedancias}
+
+Las reglas son las mismas que para resistencias, pero con números complejos:
+\begin{equation}
+  Z_{\text{serie}} = Z_1 + Z_2 + \cdots + Z_n , \qquad\qquad Y_{\text{paralelo}} = Y_1 + Y_2 + \cdots + Y_n .
+\end{equation}
+En serie circula la misma corriente y se suman las tensiones (por eso se suman impedancias); en paralelo hay la misma tensión y
+se suman las corrientes (por eso se suman admitancias). Para dos elementos en paralelo:
+\begin{equation}
+  Z_1 \parallel Z_2 = \frac{Z_1 Z_2}{Z_1 + Z_2}.
+\end{equation}
+
+\begin{ejemplo}{RLC serie a \SI{100}{\mega\hertz}}
+Con $R = \SI{10}{\ohm}$, $L = \SI{100}{\nano\henry}$ y $C = \SI{25}{\pico\farad}$:
+\begin{align*}
+  \omega &= 2\pi\cdot 10^{8} = \RlcW~\si{\radian\per\second}\\
+  X_L &= \omega L = \RlcXl~\si{\ohm} \\
+  X_C &= -\frac{1}{\omega C} = \RlcXc~\si{\ohm}\\
+  Z &= R + \jj(X_L + X_C) = \RlcZ~\si{\ohm}\\
+  \abs{Z} &= \RlcZmag~\si{\ohm}, \qquad \varphi = \RlcZdeg^\circ \quad(\text{ligeramente capacitivo})\\
+  Y &= 1/Z = \RlcY~\si{\siemens}
+\end{align*}
+Las dos reactancias casi se anulan: estamos muy cerca de la resonancia (capítulo siguiente).
+\end{ejemplo}
+
+\begin{enlaapp}
+El \app{Impedance Analyzer} calcula estas magnitudes para once topologías (R, L, C, RL, RC, LC y RLC en serie y en paralelo) y
+muestra el desarrollo paso a paso. En el modo «Red personalizada» se escribe cualquier combinación, por ejemplo
+\texttt{R(50) + (L(10n) || C(4.7p))}, donde \texttt{+} es serie y \texttt{||} es paralelo; el motor la reduce recursivamente con las reglas anteriores.
+\end{enlaapp}

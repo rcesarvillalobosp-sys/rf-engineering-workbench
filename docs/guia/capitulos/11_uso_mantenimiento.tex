@@ -1,0 +1,133 @@
+\chapter{Guía de uso, módulo a módulo}
+
+Todas las entradas aceptan prefijos SI (\texttt{10n}, \texttt{4.7p}, \texttt{433MHz}, \texttt{2.4G}) y las impedancias se escriben como
+\texttt{80+j30}, \texttt{25-j10}, \texttt{100}$\angle$\texttt{45} o \texttt{j50}.
+
+\newcommand{\modulo}[2]{\subsection*{#1}\begin{itemize}#2\end{itemize}}
+
+\modulo{Dashboard}{
+\item «Ejecutar» en \emph{Validación del motor} comprueba 10 casos de referencia.
+\item «Buscar actualizaciones» consulta GitHub y muestra la versión instalada.}
+
+\modulo{Smith Chart}{
+\item Impedancia y $Z_0$ de referencia; hasta 8 puntos para comparar.
+\item Clic en la carta para situar el punto o arrastrarlo; rueda = zoom; doble clic = vista completa.
+\item Con la frecuencia indicada se obtiene el equivalente serie y paralelo (L o C).
+\item El deslizador de línea muestra cómo gira el punto hacia el generador o hacia la carga (cap.~\ref{cap:smith}).
+\item Exportación en SVG o PNG de alta resolución.}
+
+\modulo{Circuit Builder}{
+\item Defina $Z_L$, $Z_0$ y $f_0$, o cargue un ejemplo. El circuito se lee siempre $Z_L \to 1 \to 2 \to\cdots\to Z_{in}$: el elemento 1 es el
+más cercano a la carga.
+\item Pulse un «+» del esquema (o «Insertar aquí») para elegir dónde irá el siguiente elemento y después el tipo.
+\item Cada L/C/R tiene un deslizador de $\div10$ a $\times10$; cada línea o stub, uno de longitud de 0 a $0.5\lambda$.
+\item Seleccione un elemento para resaltarlo; bórrelo con «Eliminar» o la tecla Supr.
+\item Interpretación: un elemento serie mueve el punto por un círculo de $r$ constante; uno paralelo, por un círculo de $g$ constante;
+una línea lo hace girar alrededor del centro.}
+
+\modulo{Impedance Analyzer}{
+\item Topología (RL, RC, LC, RLC serie o paralelo) o red escrita como \texttt{R(50) + (L(10n) || C(4.7p))}.
+\item Resultados: $Z$, $Y$, potencias con fuente de \SI{1}{\volt} eficaz, resonancia, $Q$, $BW$ y barrido de $\abs Z$, fase, $R$ y $X$.}
+
+\modulo{Matching Designer}{
+\item $Z_L$, $Z_s$, $f_0$ y método. Revise todas las soluciones: cada una tiene esquema, ancho de banda y ganancia de transductor $G_T$.
+\item «Valores normalizados» ajusta a E12/E24 o a la biblioteca y muestra cuánto empeora el VSWR.
+\item $Q$ finito de los componentes para ver la pérdida real; Monte Carlo para las tolerancias.
+\item Compare siempre el ancho de banda obtenido con el límite de Bode--Fano.}
+
+\modulo{Transmission Lines}{
+\item Tipo de línea: genérica, coaxial por geometría, microstrip (con espesor, $\tan\delta$ y pérdidas), bifilar o un cable de la biblioteca.
+\item La atenuación puede darse a una frecuencia de referencia; se escala con $\sqrt f$.
+\item Terminación (abierto, corto, adaptada o $Z_L$) y deslizador de posición para estudiar $\Gamma(d)$ y $Z(d)$.}
+
+\modulo{S-Parameters}{
+\item Seleccione un dataset o genere uno simulado (cascada de elementos o expresión a masa).
+\item Clic en una gráfica para poner el marcador: $\abs S$, fase, $Z$, VSWR, RL o IL en ese punto.
+\item Pestañas: magnitud, fase, Smith, VSWR, RL, retardo de grupo, estabilidad (2 puertos), TDR y modo mixto (4 puertos).}
+
+\modulo{Antenna Analyzer}{
+\item Fuentes: modelo RLC equivalente, datos importados o medidos, tabla $f$--$R$--$X$ o «Modelo EM (hilo)».
+\item Resonancia, ancho de banda con el VSWR elegido y $Q$; con el modelo EM, además, diagrama, $D$, eficiencia y ganancia.
+\item «Fijar actual» superpone varios diseños o medidas.}
+
+\modulo{Component Library}{
+\item Componentes reales con datos de su hoja de características ($Q$, ESR, SRF). La gráfica $\abs{Z(f)}$ muestra la autorresonancia.
+\item Para cables: $Z_0$, factor de velocidad y atenuación con su frecuencia.}
+
+\modulo{Touchstone Importer}{
+\item Arrastre archivos \texttt{.s1p}--\texttt{.s4p}. Revise metadatos, avisos y contraste con scikit-rf antes de guardar.
+\item Desde la tabla: abrir en S-Parameters o exportar en RI/MA/DB o CSV.}
+
+\modulo{VNA Integration}{
+\item «Buscar» detecta puertos serie, LibreVNA-GUI y recursos VISA.
+\item Configure el barrido, capture o use el barrido continuo y guarde la captura que interese.
+\item Calibre con SOL (1 puerto) o SOLT (2 puertos), con estándares ideales o con los coeficientes de su kit.}
+
+\modulo{Reports}{
+\item En cualquier módulo, «Añadir al informe». Aquí se ordena, se revisa y se exporta a PDF o CSV.
+\item Cada elemento indica si es cálculo, simulación, archivo importado o medición.}
+
+\begin{enlaapp}
+Tema claro/oscuro y color de acento: botón «Tema». \emph{Proyecto}: guarda las entradas de todos los módulos y el informe.
+\emph{Modo educativo}: muestra u oculta las explicaciones y los desarrollos paso a paso.
+\end{enlaapp}
+
+\chapter{Mantenimiento y publicación}
+
+\section{Estructura del proyecto}
+\begin{center}\small
+\begin{tabular}{@{}>{\ttfamily}ll@{}}\toprule
+\normalfont\textbf{Carpeta} & \textbf{Contenido}\\ \midrule
+backend/rfwb/engine & Motor matemático\\
+backend/rfwb/api & Endpoints FastAPI\\
+backend/rfwb/io, vna, reports & Touchstone, controladores VNA, informes\\
+backend/tests & Batería de validación (pytest)\\
+frontend/src & Interfaz React (módulos, componentes, temas)\\
+electron & Proceso principal, actualizaciones, preload\\
+scripts & build\_engine, smoke\_engine, release\\
+docs & Documentación, esta guía (LaTeX) y generadores de PDF\\ \bottomrule
+\end{tabular}
+\end{center}
+
+\section{Comandos}
+\begin{center}\small
+\begin{tabular}{@{}>{\ttfamily}ll@{}}\toprule
+\normalfont\textbf{Comando} & \textbf{Qué hace}\\ \midrule
+npm run dev & Desarrollo con recarga en caliente (Vite + Electron)\\
+npm run test:engine & Ejecuta todas las pruebas del motor\\
+npm start & Compila la interfaz y abre la aplicación\\
+npm run build:engine & Compila el motor con PyInstaller y lo prueba\\
+npm run dist & Genera el instalador sin publicarlo\\
+npm run release & Pruebas + compilación + publicación en GitHub\\
+docs/build\_docs.ps1 & Regenera los tres PDF de documentación\\ \bottomrule
+\end{tabular}
+\end{center}
+
+\section{Publicar una versión}
+\begin{enumerate}
+\item Subir la versión: \texttt{npm version patch --no-git-tag-version} (\texttt{minor} para funciones nuevas).
+\item Confirmar los cambios: \texttt{git commit -am "Versión X.Y.Z"}.
+\item Publicar: \texttt{npm run release}. Si algo falla (pruebas, compilación, subida), no se publica nada.
+\item La aplicación instalada detecta la versión nueva en el siguiente arranque y pregunta antes de instalarla.
+\end{enumerate}
+
+\section{Regenerar esta guía}
+Los números de los ejemplos y las figuras no están escritos a mano: \texttt{docs/src/guia\_latex.py} los calcula con el motor, los escribe
+en \texttt{docs/guia/generado/} y compila \texttt{guia.tex} con XeLaTeX (tres pasadas, para el índice y las referencias). Si cambia el motor,
+basta con volver a generarla y los ejemplos se actualizan solos.
+
+\section{Dónde están los datos}
+La base de datos de la aplicación instalada está en
+\begin{center}\small\texttt{\%APPDATA\%\textbackslash rf-engineering-workbench\textbackslash data\textbackslash workbench.sqlite3}\end{center}
+Para una copia de seguridad basta con copiar ese archivo con la aplicación cerrada.
+
+\section{Problemas conocidos}
+\begin{center}\small
+\begin{tabularx}{\linewidth}{@{}p{5.4cm}X@{}}\toprule
+\textbf{Síntoma} & \textbf{Solución}\\ \midrule
+Electron no se instala bien (Node 26) & Extraer a mano el zip oficial en la caché y crear \texttt{path.txt}.\\
+«Cannot create symbolic link» al compilar & Extraer winCodeSign sin los enlaces de macOS o activar el Modo de desarrollador.\\
+Puerto 8765 ocupado & Otra aplicación lo usa; por eso la app usa un puerto libre aleatorio.\\
+Windows muestra «Editor desconocido» & El instalador no está firmado: «Más información → Ejecutar de todas formas».\\ \bottomrule
+\end{tabularx}
+\end{center}

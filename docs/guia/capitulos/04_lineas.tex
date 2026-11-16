@@ -1,0 +1,183 @@
+\chapter{Líneas de transmisión}\label{cap:lineas}
+
+\section{Cuándo un cable deja de ser «un cable»}
+
+En baja frecuencia un conductor transmite la tensión instantáneamente: en todos sus puntos hay la misma tensión. Eso deja de ser
+cierto cuando su longitud es comparable con la longitud de onda:
+\begin{equation}
+  \lambda = \frac{v_p}{f} = \frac{v_f\,c}{f} = \frac{c}{f\sqrt{\varepsilon_r}} .
+\end{equation}
+\begin{donde}
+\sym{\lambda}{longitud de onda en la línea: distancia que recorre la onda en un periodo}{\si{\metre}}
+\sym{v_p}{velocidad de fase en la línea}{\si{\metre\per\second}}
+\sym{v_f}{factor de velocidad, $v_p/c$ (0.66 en coaxial de polietileno, 0.85 en espuma)}{---}
+\sym{c}{velocidad de la luz en el vacío}{\si{\metre\per\second}}
+\sym{\varepsilon_r}{permitividad relativa del dieléctrico; $v_f = 1/\sqrt{\varepsilon_r}$}{---}
+\end{donde}
+\begin{intuicion}[: la regla de $\lambda/10$]
+Si la línea mide menos de $\lambda/10$ aproximadamente, el retardo es despreciable y basta la teoría de circuitos. Si es más larga,
+la tensión en cada punto es distinta en cada instante, porque la señal tarda en llegar: hay que tratarla como una \emph{onda}.
+A \SI{2.4}{\giga\hertz} en coaxial, $\lambda \approx \SI{8}{\centi\metre}$: ¡incluso una pista de \SI{1}{\centi\metre} cuenta!
+\end{intuicion}
+
+\section{El modelo distribuido}
+
+Se divide la línea en trozos infinitesimales de longitud $\dd z$. Cada trozo es un pequeño circuito:
+
+\begin{center}
+\begin{tikzpicture}[scale=1,>=Stealth,line width=0.8pt]
+  \draw (0,0) -- (0.6,0); \draw (0,-1.6) -- (6.4,-1.6);
+  \draw[fill=accL] (0.6,-0.15) rectangle (1.8,0.15); \node[above] at (1.2,0.15) {$R'\dd z$};
+  \draw (1.8,0) -- (2.2,0);
+  \draw[decorate,decoration={coil,aspect=0.6,segment length=4pt,amplitude=4pt}] (2.2,0) -- (3.6,0); \node[above] at (2.9,0.15) {$L'\dd z$};
+  \draw (3.6,0) -- (6.4,0);
+  \draw (4.4,0) -- (4.4,-0.5); \draw[fill=accL] (4.25,-0.5) rectangle (4.55,-1.1); \draw (4.4,-1.1) -- (4.4,-1.6);
+  \node[left] at (4.25,-0.8) {$G'\dd z$};
+  \draw (5.6,0) -- (5.6,-0.7); \draw (5.3,-0.7) -- (5.9,-0.7); \draw (5.3,-0.9) -- (5.9,-0.9); \draw (5.6,-0.9) -- (5.6,-1.6);
+  \node[right] at (5.9,-0.8) {$C'\dd z$};
+  \fill (0,0) circle (1.5pt) (0,-1.6) circle (1.5pt) (6.4,0) circle (1.5pt) (6.4,-1.6) circle (1.5pt);
+  \node[left] at (0,-0.8) {$v(z,t)$}; \node[right] at (6.4,-0.4) {$v(z+\dd z,t)$};
+  \draw[|<->|,gry] (0,-2.0) -- (6.4,-2.0) node[midway,below] {$\dd z$};
+\end{tikzpicture}
+\end{center}
+\begin{donde}
+\sym{R'}{resistencia de los conductores por metro (pérdidas óhmicas, efecto pelicular)}{\si{\ohm\per\metre}}
+\sym{L'}{inductancia por metro (campo magnético entre conductores)}{\si{\henry\per\metre}}
+\sym{G'}{conductancia del dieléctrico por metro (pérdidas en el aislante)}{\si{\siemens\per\metre}}
+\sym{C'}{capacidad por metro entre los conductores}{\si{\farad\per\metre}}
+\end{donde}
+
+\subsection{Ecuaciones del telegrafista}
+Aplicando las leyes de Kirchhoff al trozo y haciendo $\dd z \to 0$, en fasores:
+\begin{equation}
+  \frac{\dd V}{\dd z} = -(R' + \jj\omega L')\,I, \qquad \frac{\dd I}{\dd z} = -(G' + \jj\omega C')\,V .
+\end{equation}
+La primera dice que la tensión cae a lo largo de la línea por la impedancia serie; la segunda, que la corriente se pierde por la
+admitancia paralelo. Derivando la primera y sustituyendo la segunda se obtiene la \textbf{ecuación de onda}:
+\begin{equation}
+  \frac{\dd^2 V}{\dd z^2} = \gamma^2 V, \qquad \gamma = \sqrt{(R' + \jj\omega L')(G' + \jj\omega C')} = \alpha + \jj\beta .
+\end{equation}
+\begin{donde}
+\sym{\gamma}{constante de propagación (compleja)}{\si{\per\metre}}
+\sym{\alpha}{constante de atenuación: cuánto se reduce la amplitud por metro}{\si{\neper\per\metre}}
+\sym{\beta}{constante de fase: cuánto gira la fase por metro, $\beta = 2\pi/\lambda$}{\si{\radian\per\metre}}
+\end{donde}
+
+\subsection{Solución: dos ondas}
+La solución general es la suma de una onda que viaja hacia $+z$ (hacia la carga) y otra hacia $-z$ (hacia el generador):
+\begin{equation}
+  V(z) = V^{+}\ee^{-\gamma z} + V^{-}\ee^{+\gamma z}, \qquad I(z) = \frac{V^{+}}{Z_0}\ee^{-\gamma z} - \frac{V^{-}}{Z_0}\ee^{+\gamma z}.
+\end{equation}
+\begin{donde}
+\sym{V^{+}}{amplitud compleja de la onda incidente (viaja hacia la carga)}{\si{\volt}}
+\sym{V^{-}}{amplitud compleja de la onda reflejada (vuelve hacia el generador)}{\si{\volt}}
+\sym{\ee^{-\gamma z}}{$=\ee^{-\alpha z}\,\ee^{-\jj\beta z}$: se atenúa ($\alpha$) y se retrasa en fase ($\beta$) al avanzar}{---}
+\end{donde}
+El signo menos de la corriente reflejada es clave: la onda reflejada lleva la corriente en sentido contrario.
+
+\section{Impedancia característica}
+\begin{definicion}{impedancia característica $Z_0$}
+Es el cociente tensión/corriente de \emph{una sola onda} viajera:
+\begin{equation}
+  Z_0 = \frac{V^{+}}{I^{+}} = \sqrt{\frac{R' + \jj\omega L'}{G' + \jj\omega C'}} \;\xrightarrow{\text{sin pérdidas}}\; \sqrt{\frac{L'}{C'}} .
+\end{equation}
+\begin{donde}
+\sym{Z_0}{impedancia característica de la línea}{\si{\ohm}}
+\end{donde}
+\end{definicion}
+\begin{atencion}{$Z_0$ no es una resistencia que se mida con un óhmetro}
+Un coaxial de \SI{50}{\ohm} medido en continua da circuito abierto. $Z_0$ es la relación que impone la geometría entre $V$ e $I$ de
+una onda. Si una línea infinitamente larga (o terminada en $Z_0$) se ve desde la entrada, presenta exactamente $Z_0$: la onda
+entra y nunca vuelve.
+\end{atencion}
+
+En una línea sin pérdidas ($R' = G' = 0$): $\alpha = 0$, $\beta = \omega\sqrt{L'C'}$ y $v_p = 1/\sqrt{L'C'}$.
+Para un coaxial de diámetros $d$ (interior) y $D$ (exterior):
+\begin{equation}
+  Z_0 = \frac{60}{\sqrt{\varepsilon_r}}\ln\frac{D}{d} .
+\end{equation}
+Por ejemplo, RG-58 ($d=\SI{0.9}{\milli\metre}$, $D = \SI{2.95}{\milli\metre}$, $\varepsilon_r \approx 2.25$) da $Z_0 \approx \CoaxZ~\si{\ohm}$.
+
+\section{Impedancia de entrada}
+
+Situamos la carga en $z = 0$ y medimos la distancia $d$ hacia el generador. El coeficiente de reflexión en la carga es
+$\Gamma_L = V^-/V^+$ (capítulo siguiente). Dividiendo $V$ entre $I$ a la distancia $d$ se obtiene la fórmula central de la teoría de líneas:
+\begin{equation}
+  \boxed{\;Z_{in}(d) = Z_0\,\frac{Z_L + Z_0\tanh(\gamma d)}{Z_0 + Z_L\tanh(\gamma d)}\;}
+  \;\xrightarrow{\text{sin pérdidas}}\;
+  Z_0\,\frac{Z_L + \jj Z_0\tan(\beta d)}{Z_0 + \jj Z_L\tan(\beta d)} .
+\end{equation}
+\begin{donde}
+\sym{Z_{in}(d)}{impedancia que se ve mirando hacia la carga a una distancia $d$ de ella}{\si{\ohm}}
+\sym{Z_L}{impedancia de carga}{\si{\ohm}}
+\sym{d}{distancia desde la carga hacia el generador}{\si{\metre}}
+\sym{\beta d = \theta}{longitud eléctrica}{rad}
+\end{donde}
+
+\subsection{Casos particulares que hay que saber de memoria}
+\begin{itemize}
+\item \textbf{Carga adaptada} ($Z_L = Z_0$): $Z_{in} = Z_0$ para cualquier longitud.
+\item \textbf{Cortocircuito} ($Z_L = 0$): $Z_{in} = \jj Z_0\tan\beta d$. Puramente reactiva: inductiva para $d < \lambda/4$.
+\item \textbf{Circuito abierto} ($Z_L\to\infty$): $Z_{in} = -\jj Z_0\cot\beta d$. Capacitiva para $d < \lambda/4$.
+\item \textbf{Línea de $\lambda/2$}: $\tan\beta d = 0$, así que $Z_{in} = Z_L$. La línea «se hace invisible» (a esa frecuencia).
+\item \textbf{Transformador de $\lambda/4$}: $\tan\beta d \to \infty$, de donde
+\begin{equation}
+  Z_{in} = \frac{Z_0^2}{Z_L} .
+\end{equation}
+Un cortocircuito se convierte en circuito abierto y viceversa. Sirve para adaptar dos resistencias $R_1$ y $R_2$ con $Z_0 = \sqrt{R_1R_2}$.
+\end{itemize}
+
+\begin{intuicion}[: por qué una línea transforma impedancias]
+En cada punto la tensión total es la suma de la onda incidente y la reflejada, que tienen fases distintas según la posición.
+Al alejarse de la carga, la onda incidente se adelanta y la reflejada se retrasa: su desfase relativo cambia $2\beta d$. Por eso el
+cociente $V/I$ (la impedancia) va cambiando punto a punto y se repite cada $\lambda/2$.
+\end{intuicion}
+
+\section{Ondas estacionarias}
+
+El módulo de la tensión total a lo largo de la línea sin pérdidas es
+\begin{equation}
+  \abs{V(d)} = \abs{V^+}\,\abs{1 + \Gamma_L\,\ee^{-\jj 2\beta d}} .
+\end{equation}
+Cuando la onda reflejada está en fase con la incidente se suman ($\abs{V}_{\max} = \abs{V^+}(1+\abs{\Gamma_L})$); medio periodo
+espacial ($\lambda/4$) después se restan ($\abs{V}_{\min} = \abs{V^+}(1 - \abs{\Gamma_L})$). El cociente es la ROE (VSWR):
+\begin{equation}
+  \mathrm{VSWR} = \frac{\abs{V}_{\max}}{\abs{V}_{\min}} = \frac{1 + \abs{\Gamma_L}}{1 - \abs{\Gamma_L}} .
+\end{equation}
+
+\begin{figure}[h]\centering
+\includegraphics[width=0.85\linewidth]{generado/onda_estacionaria.pdf}
+\caption{Patrón de onda estacionaria: los máximos y mínimos se repiten cada $\lambda/2$ y están separados $\lambda/4$.}
+\end{figure}
+
+\section{Pérdidas}
+
+Con pérdidas pequeñas ($R' \ll \omega L'$, $G' \ll \omega C'$):
+\begin{equation}
+  \alpha \approx \frac{R'}{2Z_0} + \frac{G' Z_0}{2} = \alpha_c + \alpha_d .
+\end{equation}
+\begin{donde}
+\sym{\alpha_c}{atenuación por los conductores; crece aproximadamente con $\sqrt f$ por el efecto pelicular}{\si{\neper\per\metre}}
+\sym{\alpha_d}{atenuación por el dieléctrico; crece aproximadamente con $f$}{\si{\neper\per\metre}}
+\end{donde}
+La atenuación total de una línea de longitud $\ell$ es $A = 8.686\,\alpha\,\ell$ dB. Además, la reflexión «pierde» dos veces:
+la onda reflejada se atenúa a la ida y a la vuelta, de modo que en la entrada $\abs{\Gamma_{in}} = \abs{\Gamma_L}\ee^{-2\alpha\ell}$.
+Una línea con muchas pérdidas \emph{parece} bien adaptada aunque la carga no lo esté: es un efecto engañoso al medir antenas al final de un cable largo.
+
+\begin{ejemplo}{coaxial de \SI{3.2}{\metre} a \SI{145}{\mega\hertz}}
+$Z_0 = \SI{50}{\ohm}$, $v_f = 0.66$, sin pérdidas, carga $Z_L = 100 + \jj 50\,\si{\ohm}$:
+\begin{align*}
+  \lambda &= \frac{0.66\,c}{\SI{145}{\mega\hertz}} = \LnLam~\si{\metre}, \qquad \beta = \frac{2\pi}{\lambda} = \LnBeta~\si{\radian\per\metre}\\
+  \theta &= \beta\ell = \LnTheta^\circ \quad(\ell = \LnLenLam\,\lambda)\\
+  \Gamma_L &= \frac{Z_L - Z_0}{Z_L + Z_0} = \LnGl, \qquad \mathrm{VSWR} = \LnVswr\\
+  \abs{V}_{\max} / \abs{V^+} &= \LnVmax, \qquad \abs{V}_{\min}/\abs{V^+} = \LnVmin\\
+  Z_{in} &= \LnZin~\si{\ohm}
+\end{align*}
+El VSWR no cambia a lo largo de la línea sin pérdidas, pero la impedancia de entrada sí, y mucho.
+\end{ejemplo}
+
+\begin{enlaapp}
+El módulo \app{Transmission Lines} calcula $\lambda$, $\beta$, $\theta$, $Z_{in}$, $\Gamma$ y VSWR para cualquier línea definida por $Z_0$ y $v_f$,
+obtiene $Z_0$ a partir de la geometría para coaxial, par de hilos y microstrip, y admite pérdidas definidas en dB/m (y escaladas con $\sqrt f$ y $f$). Muestra además el patrón de onda estacionaria y
+dibuja en la carta de Smith la rotación de $\Gamma$ al recorrer la línea.
+\end{enlaapp}

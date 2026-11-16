@@ -1,0 +1,131 @@
+% =====================================================================
+%  RF Engineering Workbench — Guía de estudio personal (XeLaTeX)
+%  Los valores numéricos de los ejemplos y las figuras se generan con el
+%  motor de la aplicación: docs/src/guia_latex.py → generado/
+% =====================================================================
+\documentclass[11pt,a4paper,openany,oneside]{book}
+\usepackage[a4paper,top=2.4cm,bottom=2.3cm,left=2.4cm,right=2.4cm,headheight=15pt]{geometry}
+\usepackage{fontspec}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{unicode-math}
+\setmainfont{Cambria}
+\setsansfont{Calibri}
+\setmonofont{Consolas}[Scale=0.88]
+\setmathfont{Cambria Math}
+\usepackage{polyglossia}
+\setdefaultlanguage{spanish}
+\usepackage{siunitx}
+\sisetup{output-decimal-marker={.},group-separator={\,},per-mode=symbol}
+\DeclareSIUnit{\neper}{Np}\DeclareSIUnit{\dBi}{dBi}\DeclareSIUnit{\var}{var}\DeclareSIUnit{\dBm}{dBm}
+\usepackage{graphicx,xcolor,booktabs,longtable,tabularx,array,enumitem,multicol,caption}
+\usepackage[most]{tcolorbox}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,decorations.pathmorphing}
+\usepackage{fancyhdr,titlesec}
+\usepackage[hidelinks,bookmarksnumbered]{hyperref}
+
+% ---------- colores ----------
+\definecolor{acc}{HTML}{059669}\definecolor{accD}{HTML}{064E3B}\definecolor{accL}{HTML}{ECFDF5}
+\definecolor{inf}{HTML}{2563EB}\definecolor{infL}{HTML}{EFF6FF}
+\definecolor{wrn}{HTML}{D97706}\definecolor{wrnL}{HTML}{FFFBEB}
+\definecolor{vio}{HTML}{7C3AED}\definecolor{vioL}{HTML}{F5F3FF}
+\definecolor{gry}{HTML}{475569}\definecolor{gryL}{HTML}{F1F5F9}
+\definecolor{band}{HTML}{0B1220}
+
+% ---------- notación ----------
+\newcommand{\jj}{\mathrm{j}}                 % unidad imaginaria (ingeniería)
+\newcommand{\dd}{\mathrm{d}}                 % diferencial
+\newcommand{\ee}{\mathrm{e}}                 % número e
+\renewcommand{\Re}{\operatorname{Re}}
+\renewcommand{\Im}{\operatorname{Im}}
+\newcommand{\conj}[1]{#1^{*}}
+\newcommand{\abs}[1]{\left|#1\right|}
+\newcommand{\app}[1]{\textsf{\textbf{#1}}}  % nombre de módulo de la aplicación
+
+% ---------- títulos ----------
+\titleformat{\chapter}[display]{\sffamily\bfseries\color{accD}}{\large\color{acc}\MakeUppercase{\chaptertitlename}~\thechapter}{4pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{-10pt}{18pt}
+\titleformat{\section}{\sffamily\bfseries\Large\color{accD}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\sffamily\bfseries\large\color{black}}{\thesubsection}{0.6em}{}
+\titleformat{\part}[display]{\centering\sffamily\bfseries\color{accD}}{\Large\color{acc}PARTE~\thepart}{10pt}{\Huge}
+\renewcommand{\thepart}{\Roman{part}}
+
+% ---------- cabeceras (sin nombre del autor en cada página) ----------
+\pagestyle{fancy}\fancyhf{}
+\fancyhead[L]{\small\sffamily\color{gry}RF Engineering Workbench — Guía de estudio}
+\fancyhead[R]{\small\sffamily\color{gry}Versión \Version}
+\fancyfoot[C]{\small\sffamily\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small\sffamily\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+% ---------- cuadros ----------
+\tcbset{base/.style={enhanced,boxrule=0pt,leftrule=3pt,sharp corners,fonttitle=\sffamily\bfseries\small,
+  before skip=8pt,after skip=10pt,left=8pt,right=8pt,top=5pt,bottom=6pt}}
+\newtcolorbox{definicion}[1]{base,colback=accL,colframe=acc,colbacktitle=accL,coltitle=accD,title={Definición — #1}}
+\newtcolorbox{ejemplo}[1]{base,colback=infL,colframe=inf,colbacktitle=infL,coltitle=inf,title={Ejemplo resuelto — #1}}
+\newtcolorbox{intuicion}[1][]{base,colback=vioL,colframe=vio,colbacktitle=vioL,coltitle=vio,title={Intuición física#1}}
+\newtcolorbox{atencion}[1]{base,colback=wrnL,colframe=wrn,colbacktitle=wrnL,coltitle=wrn!80!black,title={Atención — #1}}
+\newtcolorbox{enlaapp}{base,colback=gryL,colframe=gry,colbacktitle=gryL,coltitle=gry,title={En la aplicación}}
+
+% ---------- bloque «donde:» que explica cada símbolo ----------
+\newenvironment{donde}{\par\vspace{2pt}\noindent{\small\itshape donde:}\par\noindent\small
+  \tabularx{\linewidth}{@{\hspace{1.4em}}>{\raggedleft\arraybackslash}p{2.7cm}@{\hspace{0.9em}}X@{\hspace{0.6em}}>{\raggedleft\arraybackslash}p{2.3cm}@{}}}
+  {\endtabularx\par\medskip}
+\newcommand{\sym}[3]{$#1$ & #2 & \textcolor{gry}{#3}\\[1pt]}
+
+\setlist{itemsep=2pt,topsep=4pt}
+\captionsetup{font={small,sf},labelfont=bf}
+\renewcommand{\arraystretch}{1.18}
+\numberwithin{equation}{chapter}
+\makeatletter\renewcommand\@endpart{\vfil\newpage}\makeatother % sin página en blanco tras cada parte
+
+\makeatletter\newcommand{\tabla}[1]{\@@input #1 }\makeatother % \input expandible dentro de tablas
+\input{generado/valores}
+
+\begin{document}
+\frontmatter
+% ---------------------------- portada ----------------------------
+\begin{titlepage}
+\begin{tikzpicture}[remember picture,overlay]
+  \fill[band] (current page.north west) rectangle ([yshift=-0.6\paperheight]current page.north east);
+  \begin{scope}[shift={([xshift=-5.2cm,yshift=-6cm]current page.north east)},line width=1.6pt,color=acc!70!white]
+    \draw (0,0) circle (3.2);
+    \foreach \r in {0.5,1,3}{\pgfmathsetmacro{\rr}{3.2/(1+\r)}\draw[line width=0.6pt] ({3.2-\rr},0) circle (\rr);}
+    \draw[line width=0.6pt] (-3.2,0) -- (3.2,0);
+  \end{scope}
+  \node[anchor=north west,text=acc!70!white,font=\ttfamily\small] at ([xshift=2.2cm,yshift=-2.2cm]current page.north west) {GUÍA DE ESTUDIO PERSONAL};
+  \node[anchor=south west,text width=15cm,text=white,font=\sffamily\bfseries\fontsize{30}{36}\selectfont] at ([xshift=2.2cm,yshift=-15.2cm]current page.north west) {RF Engineering\\ Workbench};
+  \node[anchor=north west,text width=15.5cm,text=acc!45!white,font=\sffamily\Large] at ([xshift=2.2cm,yshift=-15.6cm]current page.north west)
+     {De los principios matemáticos al funcionamiento: un repaso profundo de la teoría de RF que implementa la aplicación};
+  \node[anchor=north west,text width=16cm,font=\sffamily\large,text=black] at ([xshift=2.2cm,yshift=-19.8cm]current page.north west)
+     {\textbf{Ricardo Villalobos Perez}\\[2pt]{\normalsize\color{gry}Versión de la aplicación \Version}};
+  \node[anchor=north west,text width=16cm,font=\small,text=gry] at ([xshift=2.2cm,yshift=-22.3cm]current page.north west)
+     {Todas las fórmulas de este documento son las que usa el motor de la aplicación. Los valores numéricos de los ejemplos
+      y las figuras se han calculado con ese mismo motor al generar el documento.};
+\end{tikzpicture}
+\end{titlepage}
+
+\tableofcontents
+\input{capitulos/00_preliminares}
+
+\mainmatter
+\part{Fundamentos matemáticos}
+\input{capitulos/01_complejos}
+\input{capitulos/02_fasores_impedancia}
+\input{capitulos/03_potencia_resonancia_db}
+
+\part{Teoría de radiofrecuencia}
+\input{capitulos/04_lineas}
+\input{capitulos/05_reflexion_smith}
+\input{capitulos/06_adaptacion}
+\input{capitulos/07_parametros_s}
+\input{capitulos/08_tiempo_calibracion}
+\input{capitulos/09_antenas_microstrip}
+
+\part{La aplicación por dentro y su uso}
+\input{capitulos/10_aplicacion}
+\input{capitulos/11_uso_mantenimiento}
+
+\appendix
+\input{capitulos/12_apendices}
+\end{document}

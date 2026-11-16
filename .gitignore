@@ -9,3 +9,10 @@ __pycache__/
 build/
 release/
 *.log
+
+# Guía LaTeX: archivos generados y auxiliares
+docs/guia/generado/
+docs/guia/*.aux
+docs/guia/*.toc
+docs/guia/*.out
+docs/guia/*.pdf

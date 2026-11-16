@@ -1,0 +1,192 @@
+\chapter{Parámetros S, redes y estabilidad}\label{cap:sparams}
+
+\section{Por qué parámetros S}
+
+Los parámetros Z, Y, H o ABCD se miden con circuitos abiertos o cortocircuitos en los puertos. En RF eso es imposible: un abierto
+radia y tiene capacidad parásita, un corto tiene inductancia, y un transistor puede oscilar con esas terminaciones. Los parámetros S
+(\emph{scattering}, de dispersión) se miden con todos los puertos terminados en $Z_0$ y relacionan \textbf{ondas}, que es justo lo que mide un VNA.
+
+\section{Ondas de potencia}
+\begin{definicion}{ondas $a$ y $b$}
+En cada puerto $i$ con tensión $V_i$ y corriente $I_i$ (entrante), y una referencia real $Z_0$:
+\begin{equation}
+  a_i = \frac{V_i + Z_0 I_i}{2\sqrt{Z_0}}, \qquad b_i = \frac{V_i - Z_0 I_i}{2\sqrt{Z_0}} .
+\end{equation}
+\begin{donde}
+\sym{a_i}{onda incidente en el puerto $i$ (entra en la red)}{$\sqrt{\mathrm{W}}$}
+\sym{b_i}{onda reflejada o emergente del puerto $i$ (sale de la red)}{$\sqrt{\mathrm{W}}$}
+\sym{\abs{a_i}^2}{potencia incidente (con valores eficaces)}{\si{\watt}}
+\end{donde}
+\end{definicion}
+Comparando con el capítulo~\ref{cap:lineas}: $a_i = V_i^+/\sqrt{Z_0}$ y $b_i = V_i^-/\sqrt{Z_0}$. Dividir por $\sqrt{Z_0}$ hace que
+$\abs{a}^2$ sea directamente una potencia.
+
+\section{La matriz S}
+\begin{definicion}{matriz de dispersión}
+\begin{equation}
+  \mathbf{b} = \mathbf{S}\,\mathbf{a}, \qquad
+  \begin{pmatrix} b_1 \\ b_2 \end{pmatrix} = \begin{pmatrix} S_{11} & S_{12} \\ S_{21} & S_{22} \end{pmatrix}\begin{pmatrix} a_1 \\ a_2 \end{pmatrix},
+  \qquad S_{ij} = \left.\frac{b_i}{a_j}\right|_{a_k = 0,\ k\ne j}.
+\end{equation}
+\begin{donde}
+\sym{S_{ij}}{respuesta que sale por el puerto $i$ cuando se excita sólo el puerto $j$ y los demás están terminados en $Z_0$}{---}
+\sym{S_{11}, S_{22}}{coeficientes de reflexión de entrada y de salida (con el otro puerto adaptado)}{---}
+\sym{S_{21}}{transmisión directa: ganancia o pérdida de inserción}{---}
+\sym{S_{12}}{transmisión inversa: aislamiento}{---}
+\end{donde}
+\end{definicion}
+Notación del primer subíndice: \emph{dónde se mide}; del segundo: \emph{dónde se excita}. $S_{21}$ se lee «del 1 al 2».
+
+\subsection{Magnitudes habituales}
+\begin{align}
+  IL &= -20\log_{10}\abs{S_{21}} \quad\text{(pérdida de inserción, positiva)}\\
+  G &= 20\log_{10}\abs{S_{21}} \quad\text{(ganancia, para amplificadores)}\\
+  \tau_g &= -\frac{\dd\phi_{21}}{\dd\omega} = -\frac{1}{2\pi}\frac{\dd\phi_{21}}{\dd f}
+\end{align}
+\begin{donde}
+\sym{\phi_{21}}{fase de $S_{21}$, desenrollada (sin saltos de $360^\circ$)}{rad}
+\sym{\tau_g}{retardo de grupo: tiempo que tarda la envolvente de una señal en atravesar la red}{\si{\second}}
+\end{donde}
+\begin{intuicion}[: retardo de grupo]
+Si la fase cae linealmente con la frecuencia, todas las componentes de una señal llegan con el mismo retardo y la forma se conserva.
+Un retardo de grupo variable en la banda distorsiona señales de banda ancha (es la razón por la que se especifica la «planitud» del
+retardo de grupo en filtros).
+\end{intuicion}
+
+\subsection{Propiedades de redes físicas}
+\begin{itemize}
+\item \textbf{Recíproca} (sin ferritas ni elementos activos): $\mathbf S = \mathbf S^T$, es decir, $S_{12} = S_{21}$.
+\item \textbf{Sin pérdidas}: $\mathbf S^H\mathbf S = \mathbf I$ (matriz unitaria). Para dos puertos: $\abs{S_{11}}^2 + \abs{S_{21}}^2 = 1$.
+\item \textbf{Pasiva}: los autovalores de $\mathbf S^H\mathbf S$ son $\le 1$; ninguna combinación de entradas devuelve más potencia de la que recibe.
+\end{itemize}
+La cantidad $1 - \abs{S_{11}}^2 - \abs{S_{21}}^2$ es la fracción de potencia disipada (o radiada) en la red.
+
+\section{Conversión entre representaciones}
+Con $Z_0$ real igual en todos los puertos y $\mathbf I$ la matriz identidad:
+\begin{equation}
+  \mathbf S = (\mathbf Z - Z_0\mathbf I)(\mathbf Z + Z_0\mathbf I)^{-1}, \qquad \mathbf Z = Z_0(\mathbf I + \mathbf S)(\mathbf I - \mathbf S)^{-1}.
+\end{equation}
+Es la generalización matricial de $\Gamma = (Z - Z_0)/(Z + Z_0)$. Para admitancias, con $Y_0 = 1/Z_0$:
+$\mathbf S = (Y_0\mathbf I - \mathbf Y)(Y_0\mathbf I + \mathbf Y)^{-1}$. El motor convierte H y G a S con las fórmulas cerradas de Frickey
+(válidas para dos puertos) y comprueba todas las conversiones contra scikit-rf en los tests.
+
+\subsection{Matriz ABCD y cascadas}
+\begin{definicion}{parámetros de transmisión}
+\begin{equation}
+  \begin{pmatrix} V_1 \\ I_1 \end{pmatrix} = \begin{pmatrix} A & B \\ C & D \end{pmatrix}\begin{pmatrix} V_2 \\ -I_2 \end{pmatrix}.
+\end{equation}
+\begin{donde}
+\sym{A}{relación de tensiones con salida en abierto, $V_1/V_2$}{---}
+\sym{B}{impedancia de transferencia con salida en corto}{\si{\ohm}}
+\sym{C}{admitancia de transferencia con salida en abierto}{\si{\siemens}}
+\sym{D}{relación de corrientes con salida en corto}{---}
+\end{donde}
+\end{definicion}
+Su gran ventaja: \textbf{la red total de una cascada es el producto de las matrices}, en orden desde la entrada:
+\begin{equation}
+  \mathbf T_{\text{total}} = \mathbf T_1\,\mathbf T_2\cdots\mathbf T_n .
+\end{equation}
+Los bloques básicos son:
+\begin{equation}
+  \underbrace{\begin{pmatrix} 1 & Z \\ 0 & 1\end{pmatrix}}_{\text{serie } Z}, \qquad
+  \underbrace{\begin{pmatrix} 1 & 0 \\ Y & 1\end{pmatrix}}_{\text{paralelo } Y}, \qquad
+  \underbrace{\begin{pmatrix} \cosh\gamma\ell & Z_0\sinh\gamma\ell \\ \sinh(\gamma\ell)/Z_0 & \cosh\gamma\ell\end{pmatrix}}_{\text{línea}} .
+\end{equation}
+Y la impedancia de entrada con una carga $Z_L$ al final es
+\begin{equation}
+  Z_{in} = \frac{A Z_L + B}{C Z_L + D}.
+\end{equation}
+\begin{enlaapp}
+Así funciona por dentro el \app{Circuit Builder} y la verificación del \app{Matching Designer}: cada elemento (serie, paralelo, línea, stub)
+es una matriz ABCD por frecuencia, se multiplican todas y se aplica la fórmula de $Z_{in}$. Los puntos intermedios de la cascada dan los
+arcos dibujados en la carta de Smith.
+\end{enlaapp}
+
+\section{Reflexión de entrada con carga arbitraria}
+Si el puerto 2 no está terminado en $Z_0$ sino en una carga con coeficiente $\Gamma_L$, entonces $a_2 = \Gamma_L b_2$ y despejando:
+\begin{equation}
+  \Gamma_{in} = S_{11} + \frac{S_{12}S_{21}\Gamma_L}{1 - S_{22}\Gamma_L}, \qquad
+  \Gamma_{out} = S_{22} + \frac{S_{12}S_{21}\Gamma_S}{1 - S_{11}\Gamma_S}.
+\end{equation}
+\begin{donde}
+\sym{\Gamma_L, \Gamma_S}{coeficientes de reflexión de la carga y de la fuente, referidos a $Z_0$}{---}
+\sym{\Gamma_{in}, \Gamma_{out}}{reflexión vista en la entrada y en la salida del dispositivo}{---}
+\end{donde}
+El segundo término es la «realimentación» a través de $S_{12}$: sólo si $S_{12} = 0$ (red unilateral) la entrada no depende de la carga.
+
+\section{Estabilidad de amplificadores}
+
+Un amplificador es \textbf{inestable} si para alguna carga o fuente pasiva ($\abs{\Gamma_L}, \abs{\Gamma_S} < 1$) resulta
+$\abs{\Gamma_{in}} > 1$ o $\abs{\Gamma_{out}} > 1$: presenta resistencia negativa y puede oscilar.
+
+\begin{definicion}{criterios de estabilidad incondicional}
+\begin{align}
+  \Delta &= S_{11}S_{22} - S_{12}S_{21}\\
+  K &= \frac{1 - \abs{S_{11}}^2 - \abs{S_{22}}^2 + \abs{\Delta}^2}{2\,\abs{S_{12}S_{21}}} > 1 \quad\text{y}\quad \abs\Delta < 1\\
+  \mu &= \frac{1 - \abs{S_{11}}^2}{\abs{S_{22} - \Delta\conj{S_{11}}} + \abs{S_{12}S_{21}}} > 1
+\end{align}
+\begin{donde}
+\sym{\Delta}{determinante de la matriz S}{---}
+\sym{K}{factor de Rollett; necesita además la condición $\abs\Delta<1$}{---}
+\sym{\mu}{factor de Edwards--Sinsky: condición necesaria y suficiente por sí sola; además, cuanto mayor, más margen}{---}
+\end{donde}
+\end{definicion}
+\begin{intuicion}[: qué mide $\mu$]
+$\mu$ es la distancia desde el centro de la carta de $\Gamma_L$ hasta la región inestable más cercana. $\mu > 1$ significa que toda la carta
+(todas las cargas pasivas) queda en zona estable. Por eso la aplicación lo usa como indicador principal.
+\end{intuicion}
+
+\subsection{Círculos de estabilidad}
+El lugar de las cargas $\Gamma_L$ que dan exactamente $\abs{\Gamma_{in}} = 1$ es una circunferencia en el plano $\Gamma_L$:
+\begin{equation}
+  C_L = \frac{\conj{\left(S_{22} - \Delta\conj{S_{11}}\right)}}{\abs{S_{22}}^2 - \abs\Delta^2}, \qquad
+  r_L = \abs{\frac{S_{12}S_{21}}{\abs{S_{22}}^2 - \abs\Delta^2}} .
+\end{equation}
+\begin{donde}
+\sym{C_L, r_L}{centro (complejo) y radio del círculo de estabilidad de salida}{---}
+\end{donde}
+Para saber qué lado es estable basta un punto de prueba: el centro de la carta ($\Gamma_L = 0$) da $\abs{\Gamma_{in}} = \abs{S_{11}}$; si es
+menor que 1, el lado del círculo que contiene el origen es el estable. Análogamente para la fuente ($C_S$, $r_S$, intercambiando 1 y 2).
+
+\begin{ejemplo}{transistor de microondas (datos de ejemplo)}
+$S_{11} = 0.894\angle{-60.6^\circ}$, $S_{12} = 0.020\angle 62.4^\circ$, $S_{21} = 3.122\angle 123.6^\circ$, $S_{22} = 0.781\angle{-27.6^\circ}$:
+\[
+  K = \StbK, \qquad \abs\Delta = \StbD, \qquad \mu = \StbMu .
+\]
+Como $\mu < 1$ (y $K<1$), el transistor es \textbf{potencialmente inestable}: hay cargas pasivas que lo hacen oscilar, y la red de
+adaptación debe evitar las regiones marcadas por los círculos de estabilidad.
+\end{ejemplo}
+
+\subsection{Ganancias y círculos de ganancia}
+\begin{itemize}
+\item \textbf{Ganancia máxima estable} (si $K<1$): $MSG = \abs{S_{21}}/\abs{S_{12}}$.
+\item \textbf{Ganancia máxima disponible} (si $K>1$): $MAG = \frac{\abs{S_{21}}}{\abs{S_{12}}}\left(K - \sqrt{K^2 - 1}\right)$, que se alcanza con
+adaptación conjugada simultánea de entrada y salida.
+\item \textbf{Círculos de ganancia}: lugar de $\Gamma_L$ con ganancia de potencia $G_p$ constante (o de $\Gamma_S$ con ganancia disponible $G_a$
+constante). Permiten cambiar ganancia por estabilidad, ruido o ancho de banda.
+\end{itemize}
+
+\section{Parámetros en modo mixto}
+
+En líneas diferenciales (USB, Ethernet, LVDS, antenas balanceadas) interesa la señal \emph{diferencia} entre dos conductores y la
+\emph{común} a ambos. Para un par de puertos $(p, n)$:
+\begin{equation}
+  a_d = \frac{a_p - a_n}{\sqrt2}, \qquad a_c = \frac{a_p + a_n}{\sqrt2}.
+\end{equation}
+Agrupando en una matriz ortogonal $\mathbf M$ (cumple $\mathbf M^{-1} = \mathbf M^T$), los parámetros en modo mixto son
+\begin{equation}
+  \mathbf S_{mm} = \mathbf M\,\mathbf S\,\mathbf M^{T} = \begin{pmatrix}\mathbf S_{dd} & \mathbf S_{dc}\\ \mathbf S_{cd} & \mathbf S_{cc}\end{pmatrix}.
+\end{equation}
+\begin{donde}
+\sym{\mathbf S_{dd}}{respuesta diferencial a excitación diferencial (lo que interesa)}{---}
+\sym{\mathbf S_{cc}}{respuesta en modo común a excitación en modo común}{---}
+\sym{\mathbf S_{cd}}{conversión de diferencial a común: genera radiación (EMI)}{---}
+\sym{\mathbf S_{dc}}{conversión de común a diferencial: susceptibilidad al ruido}{---}
+\end{donde}
+El factor $1/\sqrt2$ conserva la potencia: la impedancia diferencial de referencia es $2Z_0$ y la común $Z_0/2$.
+
+\begin{enlaapp}
+El módulo \app{S-Parameters} muestra módulo, fase, retardo de grupo, VSWR, conversiones a Z, Y, ABCD, H y G, estabilidad ($K$, $\Delta$,
+$\mu$, MSG/MAG) en función de la frecuencia, círculos de estabilidad y de ganancia en la carta, y modo mixto con emparejamiento de puertos consecutivos
+(1--2, 3--4\ldots), verificado contra la función equivalente de scikit-rf.
+\end{enlaapp}

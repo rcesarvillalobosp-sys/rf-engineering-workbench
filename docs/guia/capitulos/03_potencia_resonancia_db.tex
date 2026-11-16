@@ -1,0 +1,164 @@
+\chapter{Potencia, resonancia y decibelios}
+
+\section{Potencia en corriente alterna}
+
+En un circuito de alterna la potencia instantánea $p(t) = v(t)\,i(t)$ oscila. Lo que interesa es su \emph{valor medio}
+(la energía que realmente se entrega por unidad de tiempo) y la energía que va y vuelve sin consumirse.
+
+\begin{definicion}{potencia compleja}
+Con fasores eficaces $V$ e $I$:
+\begin{equation}
+  S = V\,\conj{I} = P + \jj Q, \qquad P = \abs{V}\abs{I}\cos\varphi, \qquad Q = \abs{V}\abs{I}\sin\varphi .
+\end{equation}
+\begin{donde}
+\sym{S}{potencia compleja; su módulo $\abs{S}$ es la potencia aparente}{\si{\volt\ampere}}
+\sym{\conj{I}}{conjugado del fasor de corriente}{\si{\ampere}}
+\sym{P}{potencia activa: la media de $p(t)$, la que se convierte en calor, radiación o trabajo}{\si{\watt}}
+\sym{Q}{potencia reactiva: energía que se intercambia cada ciclo con bobinas y condensadores}{\si{\var}}
+\sym{\varphi}{ángulo de la impedancia: desfase entre tensión y corriente}{rad}
+\sym{\cos\varphi}{factor de potencia (FP)}{---}
+\end{donde}
+\end{definicion}
+
+\paragraph{Por qué aparece el conjugado.} Si $V = \abs{V}\ee^{\jj\varphi_v}$ e $I = \abs{I}\ee^{\jj\varphi_i}$, entonces
+$V\conj{I} = \abs{V}\abs{I}\ee^{\jj(\varphi_v - \varphi_i)}$: el conjugado hace que se \emph{resten} las fases, y lo que importa
+para la potencia es precisamente el desfase entre tensión y corriente, no la fase absoluta de cada una.
+
+Usando $V = Z I$ se obtienen las formas más útiles:
+\begin{equation}
+  S = Z\,\abs{I}^2 \quad\Rightarrow\quad P = R\,\abs{I}^2, \qquad Q = X\,\abs{I}^2 .
+\end{equation}
+Es decir: \textbf{sólo la resistencia consume potencia}; la reactancia sólo la hace oscilar.
+
+\begin{atencion}{pico frente a eficaz}
+Si se usan amplitudes de pico en lugar de eficaces, $S = \tfrac12 V_p\conj{I_p}$. El factor $\tfrac12$ es una fuente clásica de
+errores de \SI{3}{\decibel}. La aplicación trabaja con valores eficaces.
+\end{atencion}
+
+\section{Máxima transferencia de potencia}
+
+Una fuente con impedancia interna $Z_s = R_s + \jj X_s$ y tensión $V_s$ alimenta una carga $Z_L = R_L + \jj X_L$. La potencia en la carga es
+\begin{equation}
+  P_L = \frac{\abs{V_s}^2\,R_L}{(R_s + R_L)^2 + (X_s + X_L)^2}.
+\end{equation}
+Para maximizarla, primero se anula el término reactivo del denominador ($X_L = -X_s$) y después se deriva respecto a $R_L$,
+obteniendo $R_L = R_s$. Juntas:
+\begin{equation}
+  Z_L = \conj{Z_s} \qquad\Rightarrow\qquad P_{\max} = P_{\text{disp}} = \frac{\abs{V_s}^2}{4R_s}.
+\end{equation}
+\begin{donde}
+\sym{Z_s}{impedancia interna de la fuente}{\si{\ohm}}
+\sym{Z_L}{impedancia de carga}{\si{\ohm}}
+\sym{P_{\text{disp}}}{potencia disponible: la máxima que puede entregar la fuente}{\si{\watt}}
+\end{donde}
+\begin{intuicion}[: adaptar es «encajar» la carga]
+La reactancia de la carga debe cancelar la de la fuente (para que la corriente no se limite por reactancias) y la resistencia de la
+carga debe igualar la de la fuente (si es menor, la fuente se «cortocircuita»; si es mayor, circula poca corriente).
+Toda la teoría de adaptación de impedancias (capítulo~\ref{cap:adaptacion}) consiste en construir redes sin pérdidas que transformen
+una carga cualquiera en $\conj{Z_s}$.
+\end{intuicion}
+
+\section{Resonancia}
+
+\begin{definicion}{resonancia}
+Un circuito está en resonancia cuando su impedancia es puramente real ($X = 0$): las energías almacenadas en el campo magnético
+de la bobina y en el eléctrico del condensador son iguales y se intercambian entre sí, sin pedir energía reactiva a la fuente.
+\end{definicion}
+
+En un RLC serie, $X = \omega L - 1/(\omega C) = 0$, de donde:
+\begin{equation}
+  \omega_0 = \frac{1}{\sqrt{LC}}, \qquad f_0 = \frac{1}{2\pi\sqrt{LC}}.
+\end{equation}
+\begin{donde}
+\sym{\omega_0}{frecuencia angular de resonancia}{\si{\radian\per\second}}
+\sym{f_0}{frecuencia de resonancia}{\si{\hertz}}
+\end{donde}
+
+\subsection{Factor de calidad y ancho de banda}
+\begin{definicion}{factor de calidad $Q$}
+\begin{equation}
+  Q = 2\pi\,\frac{\text{energía máxima almacenada}}{\text{energía disipada por ciclo}} .
+\end{equation}
+Para un RLC serie: $Q = \dfrac{\omega_0 L}{R} = \dfrac{1}{\omega_0 C R} = \dfrac{1}{R}\sqrt{\dfrac{L}{C}}$; para un RLC paralelo:
+$Q = R\sqrt{C/L}$.
+\end{definicion}
+El ancho de banda a \SI{-3}{\decibel} (frecuencias donde la potencia cae a la mitad) es
+\begin{equation}
+  BW = f_2 - f_1 = \frac{f_0}{Q}.
+\end{equation}
+\begin{donde}
+\sym{Q}{factor de calidad (adimensional). No confundir con la potencia reactiva $Q$}{---}
+\sym{f_1, f_2}{frecuencias de media potencia, donde $\abs{X} = R$ y $\abs{Z} = \sqrt2\,R$}{\si{\hertz}}
+\sym{BW}{ancho de banda a \SI{-3}{\decibel}}{\si{\hertz}}
+\end{donde}
+
+\begin{intuicion}[: $Q$ mide lo «afilado» de la resonancia]
+Un $Q$ alto significa poca pérdida por ciclo: el circuito «suena» mucho tiempo (como una campana) y responde sólo en una banda
+estrecha. Un $Q$ bajo amortigua rápido y responde en una banda ancha. En adaptación de impedancias esto tiene una consecuencia
+directa: \textbf{cuanto más alto es el $Q$ de una red, más estrecho es su ancho de banda}.
+\end{intuicion}
+
+\begin{ejemplo}{el RLC serie del capítulo anterior}
+Con $R = \SI{10}{\ohm}$, $L = \SI{100}{\nano\henry}$, $C = \SI{25}{\pico\farad}$ y \SI{1}{\volt} eficaz a \SI{100}{\mega\hertz}:
+\begin{align*}
+  f_0 &= \frac{1}{2\pi\sqrt{LC}} = \RlcFz~\si{\mega\hertz}\\
+  Q &= \frac{1}{R}\sqrt{\frac{L}{C}} = \RlcQ, \qquad BW = \frac{f_0}{Q} = \RlcBw~\si{\mega\hertz}\\
+  \abs{I} &= \frac{\abs{V}}{\abs{Z}} = \RlcI~\si{\ampere}\\
+  P &= R\abs{I}^2 = \RlcP~\si{\watt}, \qquad Q_r = X\abs{I}^2 = \RlcQr~\si{\var}\\
+  \abs{S} &= \RlcS~\si{\volt\ampere}, \qquad \text{FP} = \cos\varphi = \RlcPf
+\end{align*}
+Como \SI{100}{\mega\hertz} está casi en $f_0$, el factor de potencia es casi 1: casi toda la potencia aparente es activa.
+\end{ejemplo}
+
+\begin{figure}[h]\centering
+\includegraphics[width=0.85\linewidth]{generado/rlc.pdf}
+\caption{Respuesta en frecuencia del RLC serie: el módulo de la impedancia es mínimo ($=R$) en $f_0$ y la fase pasa de $-90^\circ$ (capacitivo) a $+90^\circ$ (inductivo).}
+\end{figure}
+
+\section{Decibelios}
+
+El decibelio es una escala logarítmica para \emph{cocientes} de potencia. Se usa porque en RF los valores abarcan muchos órdenes de
+magnitud y porque, en una cadena, las ganancias se multiplican y los logaritmos convierten productos en sumas.
+
+\begin{definicion}{decibelio}
+\begin{equation}
+  G_{\si{\decibel}} = 10\log_{10}\frac{P_2}{P_1} = 20\log_{10}\frac{\abs{V_2}}{\abs{V_1}} \quad(\text{misma impedancia}).
+\end{equation}
+\begin{donde}
+\sym{P_1, P_2}{potencias que se comparan}{\si{\watt}}
+\sym{V_1, V_2}{amplitudes (tensiones o coeficientes como $\abs{S_{21}}$)}{\si{\volt} o ---}
+\end{donde}
+\end{definicion}
+
+\paragraph{Por qué 20 y no 10.} La potencia es proporcional al cuadrado de la amplitud, $P \propto \abs{V}^2$; como
+$\log(x^2) = 2\log x$, el factor $10$ se convierte en $20$. Por eso $\abs{S_{21}}$ y $\abs{\Gamma}$ se pasan a dB con $20\log_{10}$.
+
+\begin{center}
+\begin{tabular}{lccccccc}\toprule
+Cociente de potencia & $\times 2$ & $\times 10$ & $\times 100$ & $\times\frac12$ & $\times\frac1{10}$ & $\times 1$ \\ \midrule
+dB & $+3.01$ & $+10$ & $+20$ & $-3.01$ & $-10$ & $0$ \\ \bottomrule
+\end{tabular}
+\end{center}
+
+\begin{definicion}{unidades absolutas}
+Si la referencia es una potencia fija, el dB pasa a ser una unidad absoluta:
+\begin{equation}
+  P_{\mathrm{dBm}} = 10\log_{10}\frac{P}{\SI{1}{\milli\watt}}, \qquad P_{\mathrm{dBW}} = P_{\mathrm{dBm}} - 30 .
+\end{equation}
+Ejemplos: \SI{1}{\milli\watt} $=\SI{0}{\dBm}$, \SI{1}{\watt} $=\SI{30}{\dBm}$, \SI{100}{\micro\watt} $=\SI{-10}{\dBm}$.
+\end{definicion}
+\begin{atencion}{dB más dBm}
+Se suman dB a dBm (una ganancia de \SI{10}{\decibel} sobre \SI{0}{\dBm} da \SI{10}{\dBm}), pero nunca se suman dos dBm entre sí:
+\SI{0}{\dBm} $+$ \SI{0}{\dBm} son \SI{2}{\milli\watt} $=\SI{3.01}{\dBm}$, no \SI{0}{\dBm}.
+\end{atencion}
+
+El \textbf{neper} es el equivalente con logaritmo natural, usado internamente para la atenuación de líneas:
+\begin{equation}
+  \SI{1}{\neper} = \frac{20}{\ln 10}\,\si{\decibel} \approx \SI{8.686}{\decibel}.
+\end{equation}
+
+\begin{enlaapp}
+El \app{Impedance Analyzer} muestra $P$, $Q$, $\abs{S}$, el factor de potencia, $f_0$, $Q$ y el ancho de banda para las topologías RLC.
+Todos los gráficos de módulo usan dB con $20\log_{10}$ para magnitudes de onda ($S_{ij}$, $\Gamma$) y la atenuación de líneas se
+introduce en dB por metro y se convierte a nepers internamente.
+\end{enlaapp}

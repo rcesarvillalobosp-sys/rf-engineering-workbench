@@ -1,0 +1,114 @@
+\chapter{Números complejos}
+
+Casi todo en radiofrecuencia se calcula con números complejos. No es un artificio: una señal alterna tiene \emph{amplitud} y \emph{fase},
+y un número complejo guarda exactamente esas dos informaciones en un solo objeto. Este capítulo construye todo lo necesario desde cero.
+
+\section{Qué es un número complejo}
+
+\begin{definicion}{número complejo}
+Un número complejo es un par ordenado de números reales que se escribe
+\begin{equation}
+  z = a + \jj\,b, \qquad \jj^2 = -1 .
+\end{equation}
+\begin{donde}
+\sym{z}{el número complejo}{---}
+\sym{a = \Re\{z\}}{\textbf{parte real}: la componente horizontal}{---}
+\sym{b = \Im\{z\}}{\textbf{parte imaginaria}: la componente vertical (es un número real)}{---}
+\sym{\jj}{unidad imaginaria; en electricidad se escribe $\jj$ porque $i$ se reserva para la corriente}{---}
+\end{donde}
+\end{definicion}
+
+Un número complejo se dibuja como un \textbf{punto} (o una flecha desde el origen) en el \emph{plano complejo}: el eje horizontal es la parte real y el vertical la imaginaria.
+
+\begin{center}
+\begin{tikzpicture}[scale=1.15,>=Stealth]
+  \draw[->,gry] (-0.6,0) -- (4.4,0) node[right,black] {$\Re$};
+  \draw[->,gry] (0,-0.6) -- (0,3.0) node[above,black] {$\Im$};
+  \draw[->,very thick,acc] (0,0) -- (3.4,2.2) node[above right,black] {$z=a+\jj b$};
+  \draw[dashed,gry] (3.4,0) -- (3.4,2.2) (0,2.2) -- (3.4,2.2);
+  \node[below] at (3.4,0) {$a$}; \node[left] at (0,2.2) {$b$};
+  \draw[->,inf] (1.1,0) arc (0:32.9:1.1); \node[inf] at (1.45,0.35) {$\varphi$};
+  \node[acc,rotate=33] at (1.55,1.3) {$\abs{z}$};
+  \fill[wrn] (3.4,-2.2) circle (2pt) node[right,black] {$\conj z = a-\jj b$};
+  \draw[dashed,wrn] (3.4,-0.05) -- (3.4,-2.1);
+\end{tikzpicture}
+\end{center}
+
+\section{Forma polar: módulo y argumento}
+
+La misma flecha puede describirse por su \textbf{longitud} y su \textbf{ángulo}. Por el teorema de Pitágoras y la trigonometría:
+\begin{equation}
+  \abs{z} = \sqrt{a^2 + b^2}, \qquad \varphi = \operatorname{atan2}(b,\,a), \qquad a = \abs{z}\cos\varphi, \quad b = \abs{z}\sin\varphi .
+\end{equation}
+\begin{donde}
+\sym{\abs{z}}{\textbf{módulo}: distancia del punto al origen (siempre $\geq 0$)}{---}
+\sym{\varphi}{\textbf{argumento} o fase: ángulo medido desde el eje real positivo, en sentido antihorario}{rad o $^\circ$}
+\sym{\operatorname{atan2}(b,a)}{arcotangente de $b/a$ que tiene en cuenta el cuadrante (signos de $a$ y $b$)}{rad}
+\end{donde}
+
+\begin{atencion}{atan2 y no arctan}
+$\arctan(b/a)$ no distingue $z = 1+\jj$ (ángulo $45^\circ$) de $z = -1-\jj$ (ángulo $-135^\circ$), porque ambos dan $b/a = 1$.
+La función $\operatorname{atan2}$ mira los signos de $a$ y $b$ por separado y devuelve el ángulo correcto entre $-180^\circ$ y $180^\circ$.
+La aplicación usa siempre $\operatorname{atan2}$.
+\end{atencion}
+
+\section{La fórmula de Euler}
+
+La herramienta clave que une exponenciales y trigonometría es la fórmula de Euler:
+\begin{equation}
+  \ee^{\jj\varphi} = \cos\varphi + \jj\,\sin\varphi .
+\end{equation}
+\begin{donde}
+\sym{\ee}{número de Euler, $\approx 2.71828$, base de los logaritmos naturales}{---}
+\sym{\varphi}{ángulo}{rad}
+\end{donde}
+Gracias a ella, todo número complejo se escribe en \textbf{forma exponencial}:
+\begin{equation}
+  z = \abs{z}\,\ee^{\jj\varphi} = \abs{z}\angle\varphi .
+\end{equation}
+
+\begin{intuicion}[: multiplicar por $\ee^{\jj\varphi}$ es girar]
+$\ee^{\jj\varphi}$ es un número de módulo 1 y ángulo $\varphi$: un punto sobre la circunferencia unidad. Multiplicar cualquier número
+por $\ee^{\jj\varphi}$ \emph{no cambia su tamaño, sólo lo gira} un ángulo $\varphi$. Esta idea reaparece constantemente: una señal
+que oscila en el tiempo es una flecha que gira ($\ee^{\jj\omega t}$), y una onda que avanza por una línea hace girar el coeficiente
+de reflexión sobre la carta de Smith ($\ee^{-\jj2\beta d}$).
+\end{intuicion}
+
+\section{Operaciones}
+
+\begin{itemize}
+\item \textbf{Suma y resta}: se suman las partes reales y las imaginarias por separado (como vectores). Es cómodo en forma rectangular:
+\begin{equation}
+  (a_1 + \jj b_1) + (a_2 + \jj b_2) = (a_1 + a_2) + \jj(b_1 + b_2).
+\end{equation}
+\item \textbf{Producto}: en forma polar se multiplican los módulos y se \emph{suman} los ángulos:
+\begin{equation}
+  z_1 z_2 = \abs{z_1}\abs{z_2}\,\ee^{\jj(\varphi_1 + \varphi_2)} .
+\end{equation}
+\item \textbf{Cociente}: se dividen los módulos y se \emph{restan} los ángulos. En forma rectangular se multiplica arriba y abajo por el conjugado del denominador:
+\begin{equation}
+  \frac{z_1}{z_2} = \frac{z_1\,\conj{z_2}}{z_2\,\conj{z_2}} = \frac{z_1\,\conj{z_2}}{\abs{z_2}^2} .
+\end{equation}
+\end{itemize}
+
+\begin{definicion}{conjugado}
+\begin{equation}
+  \conj{z} = a - \jj b = \abs{z}\,\ee^{-\jj\varphi}, \qquad z\,\conj{z} = a^2 + b^2 = \abs{z}^2 .
+\end{equation}
+El conjugado es la imagen especular respecto al eje real. Su propiedad más útil es que $z\conj{z}$ es siempre real y positivo:
+por eso aparece al calcular potencias y en la condición de máxima transferencia de potencia ($Z_{\text{carga}} = \conj{Z_{\text{fuente}}}$).
+\end{definicion}
+
+\begin{ejemplo}{$z = 80 + \jj 30$}
+\begin{align*}
+  \abs{z} &= \sqrt{80^2 + 30^2} = \sqrt{7300} = \ZejMod \\
+  \varphi &= \operatorname{atan2}(30, 80) = \ZejArg^\circ \\
+  \frac{1}{z} &= \frac{\conj z}{\abs{z}^2} = \frac{80 - \jj30}{7300} = \ZejInv
+\end{align*}
+El inverso de una impedancia es la admitancia: este cálculo es exactamente el que hace la aplicación para obtener $Y = 1/Z$.
+\end{ejemplo}
+
+\begin{enlaapp}
+La aplicación entiende varias notaciones al escribir impedancias: \texttt{80+j30}, \texttt{80 - j30 Ω}, \texttt{j25}, \texttt{-j10},
+\texttt{30-12j} y la forma polar \texttt{100}$\angle$\texttt{45} (módulo y ángulo en grados). Internamente todo se convierte a un número complejo de Python.
+\end{enlaapp}

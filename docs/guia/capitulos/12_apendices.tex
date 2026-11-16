@@ -1,0 +1,63 @@
+\chapter{Resumen de fórmulas}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.55}
+\begin{tabularx}{\linewidth}{@{}p{3.4cm}X@{}}\toprule
+\textbf{Concepto} & \textbf{Fórmula}\\ \midrule
+Reactancias & $X_L = \omega L$, \quad $X_C = -\dfrac{1}{\omega C}$\\
+Potencia & $S = V\conj I = P + \jj Q$, \quad $P = R\abs I^2$\\
+Resonancia & $f_0 = \dfrac{1}{2\pi\sqrt{LC}}$, \quad $BW = \dfrac{f_0}{Q}$\\
+Decibelios & $10\log_{10}(P_2/P_1) = 20\log_{10}(V_2/V_1)$\\
+Línea & $Z_0 = \sqrt{\dfrac{R'+\jj\omega L'}{G'+\jj\omega C'}}$, \quad $\gamma = \sqrt{(R'+\jj\omega L')(G'+\jj\omega C')}$\\
+Impedancia de entrada & $Z_{in} = Z_0\dfrac{Z_L + Z_0\tanh\gamma\ell}{Z_0 + Z_L\tanh\gamma\ell}$\\
+Transformador $\lambda/4$ & $Z_{in} = Z_0^2/Z_L$\\
+Reflexión & $\Gamma = \dfrac{Z - Z_0}{Z + Z_0}$, \quad $Z = Z_0\dfrac{1+\Gamma}{1-\Gamma}$, \quad $\Gamma(d) = \Gamma_L\ee^{-2\gamma d}$\\
+VSWR, RL, ML & $\dfrac{1+\abs\Gamma}{1-\abs\Gamma}$, \quad $-20\log_{10}\abs\Gamma$, \quad $-10\log_{10}(1-\abs\Gamma^2)$\\
+Onda de potencia & $\Gamma_p = \dfrac{Z_L - \conj{Z_s}}{Z_L + Z_s}$\\
+Red L & $Q = \sqrt{R_{\max}/R_{\min} - 1}$\\
+Bode--Fano & $\dfrac{\Delta f}{f_0} \le \dfrac{\pi}{Q_L\ln(1/\Gamma_m)}$\\
+S $\leftrightarrow$ Z & $\mathbf Z = Z_0(\mathbf I + \mathbf S)(\mathbf I - \mathbf S)^{-1}$\\
+$\Gamma_{in}$ & $S_{11} + \dfrac{S_{12}S_{21}\Gamma_L}{1 - S_{22}\Gamma_L}$\\
+Estabilidad & $\mu = \dfrac{1 - \abs{S_{11}}^2}{\abs{S_{22} - \Delta\conj{S_{11}}} + \abs{S_{12}S_{21}}} > 1$\\
+Retardo de grupo & $\tau_g = -\dfrac{\dd\phi}{\dd\omega}$\\
+Calibración 1 puerto & $\Gamma_m = e_{00} + \dfrac{e_{10}e_{01}\Gamma}{1 - e_{11}\Gamma}$\\
+TDR & $t_{\max} = 1/\Delta f$, \quad $d = v_f c\,t/2$\\
+Efecto pelicular & $\delta_s = 1/\sqrt{\pi f\mu_0\sigma}$\\
+Dipolo $\lambda/2$ & $Z \approx 73 + \jj 42.5\,\si{\ohm}$, \quad $D = 1.64$ ($\SI{2.15}{\dBi}$)\\
+Antena & $e = R_r/(R_r + R_L)$, \quad $G = eD$\\ \bottomrule
+\end{tabularx}
+\end{center}
+
+\chapter{Glosario}
+\begin{description}[leftmargin=0pt,itemsep=3pt]
+\item[ABCD] Matriz de transmisión de un bipuerto; se multiplica al encadenar bloques.
+\item[Admitancia] $Y = 1/Z = G + \jj B$, en siemens.
+\item[Bode--Fano] Límite teórico del ancho de banda alcanzable al adaptar una carga reactiva.
+\item[Conjugado] $\conj z = a - \jj b$: misma parte real, parte imaginaria cambiada de signo.
+\item[dBi] Ganancia respecto a una antena isótropa ideal.
+\item[DUT] \emph{Device Under Test}: el dispositivo que se mide.
+\item[Fasor] Número complejo que representa la amplitud y la fase de una senoide.
+\item[Modo mixto] Descripción de un par de líneas en términos de modo diferencial y común.
+\item[Return Loss] Atenuación de la onda reflejada respecto a la incidente (dB, positiva).
+\item[SOL / SOLT] Calibraciones Short--Open--Load (1 puerto, 3 términos) y Short--Open--Load--Thru (2 puertos, 12 términos).
+\item[SRF] \emph{Self-Resonant Frequency}: frecuencia de autorresonancia de un componente real.
+\item[Stub] Tramo de línea abierto o en cortocircuito usado como reactancia.
+\item[TDR] Reflectometría en el dominio del tiempo.
+\item[Touchstone] Formato estándar de archivos de parámetros de red (\texttt{.snp}).
+\item[VNA] \emph{Vector Network Analyzer}: analizador vectorial de redes.
+\item[VSWR / ROE] Relación de onda estacionaria.
+\end{description}
+
+\chapter{Bibliografía}
+\begin{itemize}
+\item D. M. Pozar, \emph{Microwave Engineering}, 4.ª ed., Wiley, 2012.
+\item C. A. Balanis, \emph{Antenna Theory: Analysis and Design}, 4.ª ed., Wiley, 2016.
+\item E. Hammerstad y Ø. Jensen, «Accurate models for microstrip computer-aided design», IEEE MTT-S, 1980.
+\item M. Kirschning y R. H. Jansen, «Accurate model for effective dielectric constant of microstrip», \emph{Electronics Letters}, 1982.
+\item M. L. Edwards y J. H. Sinsky, «A new criterion for linear 2-port stability using geometrically derived parameters», IEEE T-MTT, 1992.
+\item K. Kurokawa, «Power waves and the scattering matrix», IEEE T-MTT, 1965.
+\item D. A. Frickey, «Conversions between S, Z, Y, h, ABCD and T parameters», IEEE T-MTT, 1994.
+\item A. D. Yaghjian y S. R. Best, «Impedance, bandwidth, and Q of antennas», IEEE T-AP, 2005.
+\item IBIS Open Forum, \emph{Touchstone File Format Specification}, versión 2.0.
+\item scikit-rf, biblioteca de código abierto para RF (\texttt{scikit-rf.org}).
+\end{itemize}

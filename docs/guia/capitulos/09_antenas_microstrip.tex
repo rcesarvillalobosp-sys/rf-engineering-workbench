@@ -1,0 +1,156 @@
+\chapter{Antenas, efecto pelicular y microstrip}
+
+\section{Qué es una antena desde el punto de vista del circuito}
+
+Para el resto del circuito una antena es una \textbf{carga} con impedancia $Z_A = R_A + \jj X_A$. La parte resistiva tiene dos componentes:
+\begin{equation}
+  R_A = R_r + R_L .
+\end{equation}
+\begin{donde}
+\sym{R_r}{resistencia de radiación: representa la potencia que sale radiada hacia el espacio (la útil)}{\si{\ohm}}
+\sym{R_L}{resistencia de pérdidas: potencia convertida en calor en los conductores y el dieléctrico}{\si{\ohm}}
+\sym{X_A}{reactancia: energía almacenada en el campo cercano}{\si{\ohm}}
+\end{donde}
+Medir una antena con un VNA es medir su $S_{11}$, que da $Z_A$, la resonancia y el ancho de banda de adaptación. Pero el VNA \emph{no} ve
+si la potencia se radia o se pierde en calor: una carga de \SI{50}{\ohm} tiene un $S_{11}$ perfecto y no radia nada.
+
+\section{El dipolo de hilo delgado}
+
+\subsection{Distribución de corriente}
+Un hilo recto de longitud total $L$, alimentado en el centro, se comporta como una línea de transmisión abierta que se ha «desplegado».
+La corriente es aproximadamente una onda estacionaria senoidal que se anula en los extremos:
+\begin{equation}
+  I(z) = I_0\,\sin\!\left(k\left(\frac L2 - \abs z\right)\right), \qquad k = \frac{2\pi}{\lambda}.
+\end{equation}
+\begin{donde}
+\sym{z}{posición a lo largo del hilo, desde el punto de alimentación ($-L/2 \le z \le L/2$)}{\si{\metre}}
+\sym{I_0}{corriente máxima de la distribución}{\si{\ampere}}
+\sym{k}{número de onda en el espacio libre}{\si{\radian\per\metre}}
+\end{donde}
+
+\subsection{Diagrama de radiación}
+Sumando (integrando) la contribución de cada trozo de corriente en un punto muy lejano se obtiene el campo lejano:
+\begin{equation}
+  F(\theta) = \frac{\cos\!\left(\frac{kL}{2}\cos\theta\right) - \cos\!\left(\frac{kL}{2}\right)}{\sin\theta} .
+\end{equation}
+\begin{donde}
+\sym{\theta}{ángulo medido desde el eje del hilo ($\theta = 90^\circ$ es el plano perpendicular)}{rad}
+\sym{F(\theta)}{diagrama de campo normalizado: cómo varía el campo eléctrico con la dirección}{---}
+\end{donde}
+El dipolo no radia a lo largo de su eje ($\theta = 0$) y es omnidireccional alrededor de él (plano H).
+
+\subsection{Potencia radiada, resistencia de radiación y directividad}
+\begin{align}
+  R_r &= \frac{\eta_0}{2\pi}\int_0^{\pi} F(\theta)^2\sin\theta\,\dd\theta \qquad(\text{referida a } I_0)\\
+  D &= \frac{4\pi\,U_{\max}}{P_{\text{rad}}} = \frac{2\,F_{\max}^2}{\int_0^\pi F(\theta)^2\sin\theta\,\dd\theta}
+\end{align}
+\begin{donde}
+\sym{\eta_0}{impedancia del espacio libre, $\sqrt{\mu_0/\varepsilon_0}\approx\SI{376.73}{\ohm}$}{\si{\ohm}}
+\sym{U}{intensidad de radiación: potencia por unidad de ángulo sólido}{\si{\watt\per\steradian}}
+\sym{P_{\text{rad}}}{potencia total radiada}{\si{\watt}}
+\sym{D}{directividad: cuánto concentra la antena la potencia en su dirección máxima frente a una fuente isotrópica}{--- o \si{\dBi}}
+\end{donde}
+La integral se calcula numéricamente (cuadratura adaptativa). La resistencia en el punto de alimentación se obtiene trasladando la
+referencia de $I_0$ a la corriente en el centro: $R_{in} = R_r/\sin^2(kL/2)$.
+
+\subsection{Reactancia: método de la FEM inducida}
+La reactancia sale de calcular el campo que el propio hilo crea sobre su superficie (por eso depende del radio $a$). El resultado
+(Balanis) usa las integrales seno y coseno $\mathrm{Si}(x)$ y $\mathrm{Ci}(x)$. Como consecuencia, el dipolo de media onda exacto
+($L = 0.5\lambda$) \emph{no} es resonante: tiene una reactancia inductiva de unos $+\SI{42}{\ohm}$, y hay que acortarlo un 2--5\,\% para
+que $X_A = 0$ (más cuanto más grueso es el hilo).
+
+\begin{ejemplo}{dipolo de $0.5\lambda$ y monopolo de $0.25\lambda$}
+Hilo de radio $10^{-5}\lambda$, sin pérdidas significativas:
+\begin{align*}
+  \text{Dipolo:}\quad& Z_{in} = \DpZ~\si{\ohm}, \qquad D = \DpD = \DpDdbi~\si{\dBi}, \qquad R_r(I_0) = \DpRr~\si{\ohm}\\
+  \text{Monopolo:}\quad& Z_{in} = \MpZ~\si{\ohm}, \qquad D = \MpDdbi~\si{\dBi}
+\end{align*}
+Un dipolo muy corto ($L = 0.01\lambda$) tiene $D = \ShD$ ($\SI{1.76}{\dBi}$) y una resistencia minúscula, $\approx \ShR~\si{\ohm}$ (la
+fórmula clásica $R \approx 20\pi^2(L/\lambda)^2$ da $\ShRth~\si{\ohm}$): las antenas eléctricamente pequeñas son difíciles de adaptar y
+muy sensibles a las pérdidas.
+\end{ejemplo}
+
+\subsection{Monopolo: teoría de imágenes}
+Un monopolo de altura $h$ sobre un plano de masa perfecto e infinito equivale a un dipolo de longitud $2h$: el plano crea una «imagen» de
+la corriente. Como sólo radia en el semiespacio superior:
+\begin{equation}
+  Z_{\text{mono}} = \frac{Z_{\text{dip}}}{2}, \qquad D_{\text{mono}} = 2\,D_{\text{dip}} \;(+\SI{3}{\decibel}).
+\end{equation}
+
+\begin{figure}[h]\centering
+\includegraphics[width=0.95\linewidth]{generado/dipolos.pdf}
+\caption{Diagramas de campo (plano E, escala \SI{30}{\decibel}) del modelo de hilo delgado: dipolo corto, de media onda y de $1.25\lambda$
+(con lóbulos secundarios).}
+\end{figure}
+
+\subsection{Eficiencia y ganancia}
+\begin{equation}
+  e = \frac{R_r}{R_r + R_L}, \qquad G = e\,D, \qquad G_{\si{\dBi}} = 10\log_{10}G.
+\end{equation}
+\begin{donde}
+\sym{e}{eficiencia de radiación (de 0 a 1)}{---}
+\sym{G}{ganancia: directividad descontando las pérdidas}{--- o \si{\dBi}}
+\end{donde}
+
+\section{Efecto pelicular}
+
+A alta frecuencia la corriente no circula por todo el conductor sino por una capa superficial. La densidad de corriente decae
+exponencialmente hacia el interior con una profundidad característica:
+\begin{equation}
+  \delta_s = \frac{1}{\sqrt{\pi f \mu_0 \sigma}}, \qquad R_s = \frac{1}{\sigma\,\delta_s} = \sqrt{\frac{\pi f\mu_0}{\sigma}} .
+\end{equation}
+\begin{donde}
+\sym{\delta_s}{profundidad de penetración: a esa profundidad la corriente ha caído a $1/\ee \approx 37\,\%$}{\si{\metre}}
+\sym{\sigma}{conductividad del metal (cobre: $5.8\times10^7$)}{\si{\siemens\per\metre}}
+\sym{\mu_0}{permeabilidad del vacío, $4\pi\times10^{-7}$}{\si{\henry\per\metre}}
+\sym{R_s}{resistencia superficial: resistencia de un cuadrado de la capa de espesor $\delta_s$}{\si{\ohm}}
+\end{donde}
+En cobre a \SI{1}{\giga\hertz}: $\delta_s = \SkinDelta~\si{\micro\metre}$. Por eso $R_s$, y con ella la atenuación de los conductores,
+crecen como $\sqrt f$, y por eso basta un plateado fino para mejorar un conductor de RF.
+
+Para un hilo de radio $a \gg \delta_s$, la resistencia por metro es $R' = R_s/(2\pi a)$; la de pérdidas de la antena se obtiene integrando
+el cuadrado de la corriente: $R_L = \frac{R_s}{2\pi a}\int \abs{I(z)/I_0}^2\dd z$.
+
+\section{Microstrip}
+
+\subsection{Geometría}
+Una pista de anchura $W$ sobre un sustrato de espesor $h$ y permitividad $\varepsilon_r$, con plano de masa debajo. Los campos viajan en parte
+por el dieléctrico y en parte por el aire, así que la onda «ve» una permitividad intermedia:
+\begin{equation}
+  1 < \varepsilon_{\text{eff}} < \varepsilon_r, \qquad v_p = \frac{c}{\sqrt{\varepsilon_{\text{eff}}}}, \qquad \lambda = \frac{\lambda_0}{\sqrt{\varepsilon_{\text{eff}}}}.
+\end{equation}
+\begin{donde}
+\sym{W}{anchura de la pista}{\si{\metre}}
+\sym{h}{espesor del sustrato}{\si{\metre}}
+\sym{\varepsilon_{\text{eff}}}{permitividad efectiva: la de un medio homogéneo equivalente}{---}
+\sym{\lambda_0}{longitud de onda en el vacío}{\si{\metre}}
+\end{donde}
+
+\subsection{Fórmulas de Hammerstad--Jensen}
+Con $u = W/h$, el motor usa el modelo cuasi-estático de Hammerstad y Jensen (precisión típica mejor que 1\,\%):
+\begin{align}
+  \varepsilon_{\text{eff}} &= \frac{\varepsilon_r + 1}{2} + \frac{\varepsilon_r - 1}{2}\left(1 + \frac{10}{u}\right)^{-ab}\\
+  Z_0 &= \frac{60}{\sqrt{\varepsilon_{\text{eff}}}}\,\ln\!\left(\frac{f(u)}{u} + \sqrt{1 + \frac{4}{u^2}}\right),\quad
+  f(u) = 6 + (2\pi - 6)\,\ee^{-(30.666/u)^{0.7528}}
+\end{align}
+\begin{donde}
+\sym{a, b}{coeficientes de ajuste que dependen de $u$ y de $\varepsilon_r$}{---}
+\sym{f(u)}{función de ajuste de la impedancia en aire}{---}
+\end{donde}
+Una pista más ancha tiene más capacidad por metro y \emph{menor} $Z_0$.
+
+\begin{ejemplo}{pista de \SI{50}{\ohm} en FR-4}
+$W = \SI{3.06}{\milli\metre}$, $h = \SI{1.6}{\milli\metre}$, $\varepsilon_r = 4.4$: $Z_0 = \MsZ~\si{\ohm}$, $\varepsilon_{\text{eff}} = \MsEeff$,
+$v_f = \MsVf$.
+\end{ejemplo}
+
+\subsection{Dispersión y pérdidas}
+A frecuencias altas el campo se concentra más en el sustrato y $\varepsilon_{\text{eff}}$ crece con $f$ (dispersión), además de aparecer pérdidas
+en el cobre (efecto pelicular, rugosidad) y en el dieléctrico ($\tan\delta$). Para eso la aplicación ofrece un modelo dispersivo con pérdidas
+basado en el de scikit-rf, que incluye espesor de cobre y tangente de pérdidas.
+
+\begin{enlaapp}
+El \app{Antenna Analyzer} tiene dos partes. Con medidas o archivos: resonancias, ancho de banda de VSWR, $Z_A$ y factor $Q$ (Yaghjian--Best,
+a partir de la derivada de la impedancia). Con el modelo de hilo delgado: diagrama, $D$, $Z_{in}$, $R_r$, pérdidas, eficiencia y ganancia del
+dipolo o monopolo. Los resultados del modelo se etiquetan como \emph{simulados}. Las líneas microstrip están en \app{Transmission Lines}.
+\end{enlaapp}

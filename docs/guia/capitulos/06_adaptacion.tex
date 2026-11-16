@@ -1,0 +1,153 @@
+\chapter{Adaptación de impedancias}\label{cap:adaptacion}
+
+\section{El problema}
+
+Tenemos una fuente de impedancia $Z_s$ (normalmente \SI{50}{\ohm}) y una carga $Z_L$ distinta. Queremos insertar entre ambas una red
+\textbf{sin pérdidas} (sólo bobinas, condensadores o tramos de línea) tal que la carga, vista a través de la red, presente
+$Z_{in} = \conj{Z_s}$. Como la red no disipa, toda la potencia disponible llega a la carga.
+
+\begin{intuicion}[: por qué hacen falta dos elementos]
+Una impedancia tiene dos grados de libertad ($R$ y $X$). Para llevar un punto cualquiera de la carta de Smith al centro hacen falta, en general,
+dos movimientos independientes: uno que ajuste la parte real y otro que cancele la imaginaria. Por eso la red mínima tiene dos elementos (red L).
+\end{intuicion}
+
+\section{Red L}
+
+Tiene un elemento en serie y otro en paralelo. Hay dos configuraciones según qué elemento queda junto a la carga:
+\begin{itemize}
+\item \textbf{Paralelo junto a la carga}: útil cuando $R_L > R_s$. El elemento en paralelo reduce la resistencia equivalente de la carga
+hasta $R_s$; después el elemento serie cancela la reactancia que queda.
+\item \textbf{Serie junto a la carga}: útil cuando $R_L < R_s$. El elemento serie lleva la carga al círculo donde la conductancia vale $1/R_s$
+y el paralelo cancela la susceptancia restante.
+\end{itemize}
+
+\subsection{Derivación (carga resistiva, paralelo junto a la carga)}
+Sea $R_L > R_s$ con cargas reales. El elemento paralelo de susceptancia $B$ y el serie de reactancia $X$ deben cumplir
+\begin{equation}
+  R_s = \Re\left\{\frac{1}{1/R_L + \jj B}\right\} = \frac{R_L}{1 + (BR_L)^2} \quad\Rightarrow\quad B = \pm\frac{1}{R_L}\sqrt{\frac{R_L}{R_s} - 1}.
+\end{equation}
+Después, el elemento serie cancela la parte imaginaria que queda: $X = \mp\sqrt{R_s(R_L - R_s)}$. Definiendo
+\begin{equation}
+  Q = \sqrt{\frac{R_L}{R_s} - 1}, \qquad \abs{X} = Q\,R_s, \qquad \abs{B} = \frac{Q}{R_L}.
+\end{equation}
+\begin{donde}
+\sym{Q}{factor de calidad de la red L, fijado por el cociente de resistencias (no se puede elegir)}{---}
+\sym{B}{susceptancia del elemento en paralelo ($B>0$ condensador, $B<0$ bobina)}{\si{\siemens}}
+\sym{X}{reactancia del elemento en serie ($X>0$ bobina, $X<0$ condensador)}{\si{\ohm}}
+\end{donde}
+Los dos signos dan las dos soluciones: paso bajo (bobina serie, condensador paralelo) y paso alto (condensador serie, bobina paralelo).
+Para pasar de reactancias a componentes: $L = X/\omega$, $C = -1/(\omega X)$ (serie) o $C = B/\omega$, $L = -1/(\omega B)$ (paralelo).
+
+El motor no usa estas fórmulas cerradas para cargas complejas: resuelve directamente $\Re$ e $\Im$ de la condición $Z_{in} = \conj{Z_s}$ para
+las dos configuraciones, convierte cada reactancia en componente y \textbf{verifica} cada solución recalculando $Z_{in}$ con la cascada
+ABCD; las que no cumplen la condición con una tolerancia de $10^{-6}$ se descartan.
+
+\begin{ejemplo}{carga $Z_L = 25 - \jj40\,\si{\ohm}$ a \SI{433}{\mega\hertz}, fuente de \SI{50}{\ohm}}
+Antes de adaptar: $\abs{\Gamma} = \MtGb$, VSWR $=\MtVb$. Soluciones de red L encontradas por el motor:
+\begin{center}\small
+\begin{tabular}{clp{6.4cm}c}\toprule
+\# & Topología & Elementos (desde la fuente) & BW (VSWR$\le2$)\\ \midrule
+\tabla{generado/tabla_red_l.tex}
+\bottomrule
+\end{tabular}
+\end{center}
+El límite de Bode--Fano (más abajo) para esta carga es $\Delta f/f_0 \le \MtBf\,\%$ con $Q_L = \MtQl$.
+\end{ejemplo}
+
+\begin{figure}[h]\centering
+\includegraphics[width=\linewidth]{generado/red_l.pdf}
+\caption{Red L para $Z_L = 25 - \jj40\,\si{\ohm}$ a \SI{433}{\mega\hertz}. Izquierda: cada elemento es un arco en la carta (serie: círculo de $r$ constante; paralelo: círculo de $g$ constante). Derecha: $\abs\Gamma$ frente a la frecuencia; la adaptación sólo es perfecta en $f_0$.}
+\end{figure}
+
+\begin{ejemplo}{red L con $Z_0 = \SI{100}{\ohm}$}
+Carga $200 - \jj100\,\si{\ohm}$ a \SI{500}{\mega\hertz}, fuente de \SI{100}{\ohm}. Una de las soluciones es un condensador en paralelo de
+$\PozC~\si{\pico\farad}$ junto a la carga y una bobina en serie de $\PozL~\si{\nano\henry}$. (Es el problema clásico de Pozar, ejemplo 5.1, que sirve
+para validar el motor.)
+\end{ejemplo}
+
+\section{Redes Pi y T: controlar el ancho de banda}
+La red L tiene un $Q$ fijo. Si se quiere \emph{más} selectividad (filtrar armónicos) o elegir el ancho de banda, se usan tres elementos.
+La idea es pasar por una resistencia intermedia virtual $R_v$:
+\begin{equation}
+  \text{Pi:}\ R_v = \frac{\max(R_s, R_L)}{1 + Q_{\text{red}}^2} < R_s, R_L, \qquad
+  \text{T:}\ R_v = \min(R_s, R_L)\,(1 + Q_{\text{red}}^2) > R_s, R_L .
+\end{equation}
+\begin{donde}
+\sym{R_v}{resistencia virtual en el nudo central (no existe físicamente)}{\si{\ohm}}
+\sym{Q_{\text{red}}}{$Q$ deseado; debe ser mayor que el de la red L equivalente}{---}
+\end{donde}
+Una Pi son dos redes L espalda con espalda (paralelo--serie y serie--paralelo, con los dos elementos serie centrales sumados): la primera
+transforma $R_L$ en $R_v$ y la segunda $R_v$ en $R_s$. Si el $Q$ pedido es menor que el mínimo $\sqrt{R_{\max}/R_{\min} - 1}$, la red no
+existe y el motor lo indica. Mayor $Q$ significa menor
+ancho de banda ($BW \approx f_0/Q$) y mayor sensibilidad a tolerancias.
+
+\section{\texorpdfstring{Transformador de $\lambda/4$}{Transformador de λ/4}}
+Para cargas reales: una línea de $\lambda/4$ con
+\begin{equation}
+  Z_T = \sqrt{Z_s\,R_L}.
+\end{equation}
+Si la carga es compleja, primero se añade un tramo de línea de $Z_0$ hasta que $Z$ se vuelve real (un máximo o mínimo de la onda estacionaria,
+donde el punto cruza el eje horizontal de la carta) y después el transformador. El motor calcula la distancia y las dos opciones.
+
+\section{Adaptación con stubs}
+
+\subsection{Stub simple}
+Un \emph{stub} es un tramo de línea en cortocircuito o en abierto conectado en paralelo. Se comporta como una susceptancia pura
+(capítulo~\ref{cap:lineas}):
+\begin{equation}
+  B_{\text{stub,corto}} = -\frac{1}{Z_0}\cot\beta\ell, \qquad B_{\text{stub,abierto}} = \frac{1}{Z_0}\tan\beta\ell .
+\end{equation}
+El procedimiento es:
+\begin{enumerate}
+\item Desplazarse por la línea desde la carga una distancia $d$ hasta que la admitancia normalizada sea $y = 1 + \jj b$
+(en la carta: girar hasta cortar el círculo $g = 1$).
+\item En ese punto colocar un stub de longitud $\ell$ que aporte la susceptancia $-b$, de modo que $y = 1$.
+\end{enumerate}
+\begin{donde}
+\sym{d}{distancia de la carga al punto de conexión del stub}{\si{\metre} o $\lambda$}
+\sym{\ell}{longitud del stub}{\si{\metre} o $\lambda$}
+\sym{b}{susceptancia normalizada que hay que cancelar}{---}
+\end{donde}
+Siempre hay dos soluciones (los dos cortes con el círculo $g=1$ en una vuelta).
+\begin{ejemplo}{stub en cortocircuito, $Z_L = 60 - \jj80\,\si{\ohm}$ a \SI{2}{\giga\hertz}}
+Soluciones del motor: $d = \StD\,\lambda$, $\ell = \StL\,\lambda$, o bien $d = \StDb\,\lambda$, $\ell = \StLb\,\lambda$.
+\end{ejemplo}
+
+\subsection{Doble stub}
+Con stubs en posiciones fijas (el primero a una distancia $d_1$ de la carga y el segundo separado $\lambda/8$, por ejemplo) la adaptación se consigue ajustando sólo sus longitudes. Su inconveniente:
+existe una \emph{zona prohibida} de cargas que no se pueden adaptar con una separación dada; el motor lo detecta e informa.
+
+\section{Límite de Bode--Fano}
+
+\begin{definicion}{límite de Bode--Fano}
+Para una carga que se modela como $R$ y $X$ en serie (con $Q_L = \abs{X_L}/R_L$), ninguna red sin pérdidas, por compleja que sea, puede
+conseguir una reflexión $\abs\Gamma \le \Gamma_m$ en una banda relativa mayor que
+\begin{equation}
+  \frac{\Delta f}{f_0} \le \frac{\pi}{Q_L\,\ln(1/\Gamma_m)} .
+\end{equation}
+\begin{donde}
+\sym{\Delta f/f_0}{ancho de banda relativo alcanzable}{---}
+\sym{Q_L}{factor de calidad de la carga a $f_0$}{---}
+\sym{\Gamma_m}{máxima reflexión tolerada en la banda (por ejemplo $1/3$ para VSWR 2)}{---}
+\end{donde}
+\end{definicion}
+\begin{intuicion}[: no se puede tener todo]
+Una carga muy reactiva (alto $Q_L$) almacena mucha energía, y eso limita lo ancha que puede ser la adaptación. Si se exige reflexión muy baja
+($\Gamma_m\to 0$, $\ln(1/\Gamma_m)\to\infty$), el ancho de banda tiende a cero. Bode--Fano es un \emph{techo teórico}: dice cuándo dejar de
+buscar una red mejor.
+\end{intuicion}
+
+\section{Tolerancias y Monte Carlo}
+Los componentes reales tienen tolerancia (por ejemplo $\pm5\,\%$) y valores comerciales (series E12, E24). La aplicación:
+\begin{enumerate}
+\item Redondea los valores ideales a la serie E elegida y recalcula la respuesta.
+\item Ejecuta un análisis Monte Carlo: genera $N$ redes (de 10 a \num{20000}) variando cada $L$, $C$ y longitud de línea dentro de su
+tolerancia, con distribución uniforme o gaussiana (en la gaussiana la tolerancia se toma como $3\sigma$). Para cada red calcula el VSWR en
+toda la banda y presenta: media, desviación típica, percentiles 5/50/95 (envolvente), histograma en $f_0$ y \emph{rendimiento} (yield),
+la fracción de unidades con VSWR$(f_0)$ dentro del objetivo.
+\end{enumerate}
+
+\begin{enlaapp}
+El \app{Matching Designer} implementa red L, Pi, T, $\lambda/4$, stub simple y doble stub, con factor $Q$ finito de los componentes, barrido en
+frecuencia de cada solución, ancho de banda medido, límite de Bode--Fano, trayectoria en la carta de Smith, redondeo a series E y Monte Carlo.
+\end{enlaapp}
