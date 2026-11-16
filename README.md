@@ -6,6 +6,8 @@ adaptación, líneas de transmisión, parámetros S, antenas, Touchstone, prepar
 Funciona **sin instrumento**: todos los resultados proceden del motor matemático, de modelos o de archivos importados,
 y cada dato indica su origen (calculado · simulado · importado · medido · derivado).
 
+Documentación técnica completa (arquitectura, API, validación, publicación): [`docs/RF_Engineering_Workbench_Documentacion_Tecnica.pdf`](docs/RF_Engineering_Workbench_Documentacion_Tecnica.pdf). Se regenera con `docs/build_docs.ps1`.
+
 ## Requisitos
 
 - Windows 10/11 (también funciona en Linux/macOS desde el código fuente)
