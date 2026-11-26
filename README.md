@@ -1,5 +1,7 @@
 # RF Engineering Workbench
 
+**Documento de presentación (PDF):** [docs/Presentacion-RF-Engineering-Workbench.pdf](docs/Presentacion-RF-Engineering-Workbench.pdf)
+
 Plataforma de escritorio para análisis, simulación y diseño de sistemas de radiofrecuencia: carta de Smith, impedancias,
 adaptación, líneas de transmisión, parámetros S, antenas, Touchstone, preparación para VNA e informes técnicos.
 
