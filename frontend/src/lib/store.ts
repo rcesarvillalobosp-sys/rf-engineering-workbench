@@ -30,7 +30,7 @@ interface State {
   report: ReportItem[];
   project: { id?: number; name: string };
   toasts: Toast[];
-  theme: { mode: "dark" | "light" | "system"; accent: "emerald" | "cyan" | "blue" | "violet" | "amber" };
+  theme: { mode: "dark" | "light" | "system"; accent: "magenta" | "yellow" | "cyan" | "green" | "white" };
   setTheme: (p: Partial<State["theme"]>) => void;
   setModule: (m: ModuleKey) => void;
   setEducation: (v: boolean) => void;
@@ -56,7 +56,7 @@ export const useStore = create<State>()(
       report: [],
       project: { name: "Proyecto sin título" },
       toasts: [],
-      theme: { mode: "dark", accent: "emerald" },
+      theme: { mode: "dark", accent: "magenta" },
       setTheme: (p) => set((s) => ({ theme: { ...s.theme, ...p } })),
       setModule: (module) => set({ module }),
       setEducation: (education) => set({ education }),

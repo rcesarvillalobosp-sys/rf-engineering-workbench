@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "motion/react";
 import {
-  Activity, Antenna, BookOpen, CircleDot, Cpu, FileInput, FileText, FolderOpen, GitBranch, GraduationCap, LayoutDashboard,
+  Activity, Antenna, CircleDot, Cpu, FileInput, FileText, FolderOpen, GitBranch, GraduationCap, LayoutDashboard,
   Library, Monitor, Moon, Network, Palette as PaletteIcon, Radio, Save, Sun, Waves, X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -149,60 +149,39 @@ export default function App() {
   const Comp = current.Comp;
   return (
     <div className="flex h-full flex-col">
-      <header className="shrink-0 border-b border-line bg-panel">
-        <div className="flex h-12 items-center justify-between gap-3 px-4">
-          <div className="flex min-w-0 items-center gap-4">
-            <button onClick={() => setModule("dashboard")} className="flex shrink-0 items-center gap-2">
-              <svg viewBox="0 0 32 32" className="h-7 w-7 text-acc">
-                <circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" strokeWidth="1.6" />
-                <circle cx="20.3" cy="16" r="8.7" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.6" />
-                <circle cx="24.6" cy="16" r="4.3" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.4" />
-                <line x1="3" y1="16" x2="29" y2="16" stroke="currentColor" strokeWidth="1" opacity="0.5" />
-              </svg>
-              <div className="text-left leading-tight">
-                <div className="text-[12.5px] font-semibold tracking-wide text-ink">RF ENGINEERING</div>
-                <div className="font-mono text-[10px] tracking-[0.25em] text-acc">WORKBENCH</div>
-              </div>
-            </button>
-            <span className="hidden min-w-0 truncate text-[12.5px] text-dim lg:inline">
-              <BookOpen className="mr-1.5 inline h-3.5 w-3.5 text-faint" />
-              {project.name}
-            </span>
-            <VnaBadge />
-          </div>
-          <div className="relative flex shrink-0 items-center gap-2.5">
-            <button onClick={() => setEducation(!education)} title="Muestra u oculta fórmulas, desarrollos paso a paso y explicaciones"
-              className={`inline-flex items-center gap-1.5 rounded border px-2.5 py-1 text-[12px] transition-colors ${education ? "border-acc/60 bg-acc/10 text-acc" : "border-line2 text-dim hover:text-ink"}`}>
-              <GraduationCap className="h-3.5 w-3.5" />Modo educativo: {education ? "activado" : "desactivado"}
-            </button>
-            <Btn small icon={theme.mode === "light" ? <Sun className="h-3.5 w-3.5" /> : <PaletteIcon className="h-3.5 w-3.5" />} onClick={() => { setThemeOpen((v) => !v); setProjOpen(false); }}>Tema</Btn>
-            <Btn small icon={<FolderOpen className="h-3.5 w-3.5" />} onClick={() => { setProjOpen((v) => !v); setThemeOpen(false); }}>Proyecto</Btn>
-            <AnimatePresence>{projOpen && <ProjectMenu onClose={() => setProjOpen(false)} />}</AnimatePresence>
-            <AnimatePresence>{themeOpen && <ThemeMenu onClose={() => setThemeOpen(false)} />}</AnimatePresence>
-          </div>
+      <header className="annot flex h-11 shrink-0 items-stretch">
+        <span className="annot-cell"><span className="annot-k">Módulo</span><span className="text-[14px] font-semibold text-acc">{current.label}</span></span>
+        <span className="annot-cell hidden min-w-0 md:inline-flex"><span className="annot-k">Proyecto</span><span className="truncate text-[13px] text-ink">{project.name}</span></span>
+        <span className="annot-cell hidden lg:inline-flex"><span className="annot-k">Z0</span><span className="font-mono text-[12px] text-ink">50 Ω</span></span>
+        <span className="annot-cell"><VnaBadge /></span>
+        <div className="relative ml-auto flex shrink-0 items-center gap-2 px-3">
+          <button onClick={() => setEducation(!education)} title="Muestra u oculta fórmulas, desarrollos paso a paso y explicaciones"
+            className={`hardkey ${education ? "on" : ""}`}><GraduationCap className="h-3.5 w-3.5" />EDU {education ? "ON" : "OFF"}</button>
+          <button className={`hardkey ${themeOpen ? "on" : ""}`} onClick={() => { setThemeOpen((v) => !v); setProjOpen(false); }}>
+            {theme.mode === "light" ? <Sun className="h-3.5 w-3.5" /> : <PaletteIcon className="h-3.5 w-3.5" />}Pantalla</button>
+          <button className={`hardkey ${projOpen ? "on" : ""}`} onClick={() => { setProjOpen((v) => !v); setThemeOpen(false); }}>
+            <FolderOpen className="h-3.5 w-3.5" />Archivo</button>
+          <AnimatePresence>{projOpen && <ProjectMenu onClose={() => setProjOpen(false)} />}</AnimatePresence>
+          <AnimatePresence>{themeOpen && <ThemeMenu onClose={() => setThemeOpen(false)} />}</AnimatePresence>
         </div>
-        <nav className="no-scrollbar flex gap-0.5 overflow-x-auto px-3">
-          {MODULES.map((m) => {
-            const Icon = m.icon;
-            const on = m.key === module;
-            return (
-              <button key={m.key} onClick={() => setModule(m.key)}
-                className={`relative flex shrink-0 items-center gap-1.5 whitespace-nowrap px-3 pb-2 pt-1.5 text-[12.5px] transition-colors ${on ? "text-acc" : "text-dim hover:text-ink"}`}>
-                <Icon className="h-4 w-4" />
-                <span>{m.label}</span>
-                {m.key === "reports" && report.length > 0 && <span className="rounded bg-acc/15 px-1.5 font-mono text-[10px] text-acc">{report.length}</span>}
-                {on && <motion.span layoutId="nav-active" className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-acc" transition={{ type: "spring", stiffness: 500, damping: 40 }} />}
-              </button>
-            );
-          })}
-        </nav>
       </header>
-      <main className="bg-grid min-h-0 flex-1 overflow-auto">
-        {/* Sin animación de salida: el cambio de módulo nunca espera a que termine una animación. */}
-        <motion.div key={module} initial={{ opacity: 0.4, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.14 }} className="mx-auto max-w-[1720px] p-5">
-          <Comp />
-        </motion.div>
-      </main>
+      <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+        <main className="bg-grid min-h-0 flex-1 overflow-auto">
+          {/* Sin animación de salida: el cambio de módulo nunca espera a que termine una animación. */}
+          <motion.div key={module} initial={{ opacity: 0.4, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.14 }} className="mx-auto max-w-[1720px] p-5">
+            <Comp />
+          </motion.div>
+        </main>
+        <nav className="softkeys" aria-label="Módulos">
+          {MODULES.map((m, i) => (
+            <button key={m.key} onClick={() => setModule(m.key)} className={`softkey ${m.key === module ? "on" : ""}`} aria-current={m.key === module ? "page" : undefined}>
+              <span className="fk">F{i + 1}</span><span>{m.label}</span>
+              {m.key === "reports" && report.length > 0 && <span className="cnt">{report.length}</span>}
+            </button>
+          ))}
+          <div className="plate"><b>RF·WB</b><span>Banco de ingeniería de radiofrecuencia</span></div>
+        </nav>
+      </div>
       <div className="pointer-events-none fixed bottom-4 right-4 z-50 flex w-[380px] flex-col gap-2">
         <AnimatePresence>
           {toasts.map((t) => (

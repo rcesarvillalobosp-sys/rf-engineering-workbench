@@ -8,7 +8,7 @@ export default {
       colors: Object.fromEntries(["bg", "panel", "panel2", "line", "line2", "ink", "dim", "faint", "acc", "acc2", "onacc",
         "warn", "err", "info", "violet", "cyan", "orange"].map((k) => [k, v(k)])),
       fontFamily: {
-        sans: ['"IBM Plex Sans"', "system-ui", "sans-serif"],
+        sans: ['"Barlow Semi Condensed"', "system-ui", "sans-serif"],
         mono: ['"JetBrains Mono"', "ui-monospace", "monospace"],
       },
       fontSize: { "2xs": ["10.5px", "14px"] },

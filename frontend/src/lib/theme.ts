@@ -4,14 +4,15 @@ import { useEffect, useMemo, useState } from "react";
 import { useStore } from "./store";
 
 export type ThemeMode = "dark" | "light" | "system";
-export type Accent = "emerald" | "cyan" | "blue" | "violet" | "amber";
+export type Accent = "magenta" | "yellow" | "cyan" | "green" | "white";
 
+/** Colores de traza de un analizador: el acento es la traza activa. */
 export const ACCENTS: { key: Accent; label: string; dark: string; light: string }[] = [
-  { key: "emerald", label: "Esmeralda", dark: "#34d399", light: "#059669" },
-  { key: "cyan", label: "Cian", dark: "#22d3ee", light: "#0891b2" },
-  { key: "blue", label: "Azul", dark: "#60a5fa", light: "#2563eb" },
-  { key: "violet", label: "Violeta", dark: "#a78bfa", light: "#7c3aed" },
-  { key: "amber", label: "Ámbar", dark: "#fbbf24", light: "#d97706" },
+  { key: "magenta", label: "Traza magenta", dark: "#ff4fa8", light: "#c2185b" },
+  { key: "yellow", label: "Traza amarilla", dark: "#f2d600", light: "#8a6f00" },
+  { key: "cyan", label: "Traza cian", dark: "#3fd5e0", light: "#00838f" },
+  { key: "green", label: "Traza verde", dark: "#8be04e", light: "#3c8c1c" },
+  { key: "white", label: "Traza blanca", dark: "#e6e6e6", light: "#2b2b2b" },
 ];
 
 export interface Palette {
@@ -40,31 +41,32 @@ export function buildPalette(mode: "dark" | "light", accent: Accent): Palette {
   const ac = ACCENTS.find((a) => a.key === accent) ?? ACCENTS[0];
   if (mode === "dark") {
     const acc = ac.dark;
+    // Pantalla de instrumento: negro neutro, sin tinte azul
     const base = {
-      bg: "#0a0e13", panel: "#10161d", panel2: "#151d26", line: "#1f2a35", line2: "#2b3946",
-      ink: "#e2e8f0", dim: "#8b9aab", faint: "#5a6878",
-      warn: "#fbbf24", err: "#f87171", info: "#60a5fa", violet: "#a78bfa", cyan: "#22d3ee", orange: "#fb923c",
+      bg: "#0b0b0c", panel: "#141516", panel2: "#1b1c1e", line: "#27292c", line2: "#36393d",
+      ink: "#e7e8e9", dim: "#9b9fa4", faint: "#64686d",
+      warn: "#f2c230", err: "#ff5c5c", info: "#7aa7ff", violet: "#b69cff", cyan: "#3fd5e0", orange: "#ff9a3c",
     };
     return {
-      mode, ...base, acc, acc2: mix(acc, "#ffffff", 0.25), onacc: "#06120d", accSoft: rgba(acc, 0.08),
-      plotBg: "#0c1218", grid: "#1c2733", zero: "#2b3946",
-      smithBg0: "#111a23", smithBg1: "#0b1118", smithGrid: "#253444", smithGridUnit: mix("#253444", acc, 0.45),
-      smithAdm: "#2d4a6b", smithRim: "#465b70", smithRing: "#33424f", smithLabel: "#6a7b8d",
-      series: dedupe([acc, "#60a5fa", "#fbbf24", "#f87171", "#a78bfa", "#22d3ee", "#e879f9", "#fb923c", "#34d399"]),
+      mode, ...base, acc, acc2: mix(acc, "#ffffff", 0.25), onacc: "#0b0b0c", accSoft: rgba(acc, 0.1),
+      plotBg: "#08090a", grid: "#1e2022", zero: "#36393d",
+      smithBg0: "#121314", smithBg1: "#08090a", smithGrid: "#2b2d30", smithGridUnit: mix("#2b2d30", acc, 0.45),
+      smithAdm: "#3f4a3a", smithRim: "#5b5f64", smithRing: "#3a3d41", smithLabel: "#7a7e83",
+      series: dedupe([acc, "#f2d600", "#3fd5e0", "#8be04e", "#ff9a3c", "#b69cff", "#ff5c5c", "#e6e6e6"]),
     };
   }
   const acc = ac.light;
   const base = {
-    bg: "#f3f5f8", panel: "#ffffff", panel2: "#f3f6f9", line: "#dde3ea", line2: "#c7d0da",
-    ink: "#0f172a", dim: "#475569", faint: "#8a97a8",
-    warn: "#b45309", err: "#dc2626", info: "#2563eb", violet: "#7c3aed", cyan: "#0891b2", orange: "#ea580c",
+    bg: "#e2e3e4", panel: "#f7f7f7", panel2: "#eeeff0", line: "#d2d4d6", line2: "#b9bcbf",
+    ink: "#141516", dim: "#4d5155", faint: "#83878b",
+    warn: "#9a6a00", err: "#c62828", info: "#1f5fbf", violet: "#6a3fc0", cyan: "#00838f", orange: "#c25400",
   };
   return {
     mode, ...base, acc, acc2: mix(acc, "#000000", 0.15), onacc: "#ffffff", accSoft: rgba(acc, 0.08),
-    plotBg: "#ffffff", grid: "#e5eaf0", zero: "#c7d0da",
-    smithBg0: "#ffffff", smithBg1: "#f6f8fb", smithGrid: "#cdd6e0", smithGridUnit: mix("#cdd6e0", acc, 0.5),
-    smithAdm: "#9cc3f5", smithRim: "#64748b", smithRing: "#a3b0bf", smithLabel: "#64748b",
-    series: dedupe([acc, "#2563eb", "#d97706", "#dc2626", "#7c3aed", "#0891b2", "#c026d3", "#ea580c", "#059669"]),
+    plotBg: "#ffffff", grid: "#e3e5e7", zero: "#b9bcbf",
+    smithBg0: "#ffffff", smithBg1: "#f4f4f5", smithGrid: "#d3d5d8", smithGridUnit: mix("#d3d5d8", acc, 0.5),
+    smithAdm: "#a9c79a", smithRim: "#5f6368", smithRing: "#a6a9ad", smithLabel: "#5f6368",
+    series: dedupe([acc, "#8a6f00", "#00838f", "#3c8c1c", "#c25400", "#6a3fc0", "#c62828", "#2b2b2b"]),
   };
 }
 
